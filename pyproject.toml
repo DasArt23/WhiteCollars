@@ -1,0 +1,32 @@
+[project]
+name = "photonic-model"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "bakin.aa2", email = "bakin.aa2@dozen.mephi.ru" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+project = "main:main"
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["app*", "model*"]
+exclude = ["tests*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
+]
