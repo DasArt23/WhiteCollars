@@ -59,12 +59,15 @@ def test_fresnel_lens_focusing() -> None:
     recon = fresnel_reconstruct(torch.from_numpy(wrapped_phase)).numpy()
     c = N // 2
 
-    # В плоскости f = z квадратичная фаза полностью компенсируется ядром Френеля,
-    # и плоская волна собирается в центральный дифракционный пик (c, c).
-    # На соседних плоскостях расфокусировка размывает энергию по пятну, поэтому
-    # отношение пика к среднему (peak-to-mean ratio) на f=z близко к N^2 = 16384,
-    # а на других плоскостях падает более чем на порядок. Порог > 5000 для фокуса
-    # и минимум 5-кратное превышение пика над расфокусированными плоскостями.
+    # Обоснование порогов:
+    # 1) В плоскости фокуса (z0 = f = 24.1 мм) квадратичная фаза полностью компенсируется,
+    #    давая дифракционный пик |K(c,c)| = N^2 / (lambda * f) ≈ 1.278e12.
+    #    Отношение пика к среднему по кадру (peak-to-mean) близко к N^2 = 16384 (порог > 5000).
+    # 2) В ближайшей соседней плоскости (z1 = 25.3 мм, dz = 1.2 мм) при апертуре L = 1.28 мм
+    #    набег фазы на краю составляет ~1.52*pi. Интеграл Френеля даёт падение амплитуды |K|
+    #    в 3.997 раза (интенсивности |K|^2 — в 16 раз), а отношение peak-to-mean падает
+    #    более чем в 15 раз из-за размытия энергии в пятно. Поэтому порог по амплитуде >= 3.5,
+    #    а по остроте фокуса (peak-to-mean) >= 10x относительно всех остальных плоскостей.
     focus_plane = recon[focus_idx]
     peak_focus = float(focus_plane[c, c])
     ratio_focus = peak_focus / float(focus_plane.mean())
@@ -73,12 +76,18 @@ def test_fresnel_lens_focusing() -> None:
     assert ratio_focus > 5000.0, f"Недостаточно острый фокус: peak/mean = {ratio_focus:.1f}"
 
     for other_idx in range(1, len(DISTANCES)):
-        peak_other = float(recon[other_idx].max())
-        assert peak_focus > 5.0 * peak_other, (
-            f"Пик в фокусе ({peak_focus:.2f}) должен быть значительно выше "
-            f"расфокусированной плоскости {other_idx} ({peak_other:.2f})"
-        )
+        other_plane = recon[other_idx]
+        peak_other = float(other_plane.max())
+        ratio_other = peak_other / float(other_plane.mean())
 
+        assert peak_focus > 3.5 * peak_other, (
+            f"Пик амплитуды в фокусе ({peak_focus:.2e}) должен быть минимум в 3.5 раза выше "
+            f"расфокусированной плоскости {other_idx} ({peak_other:.2e})"
+        )
+        assert ratio_focus > 10.0 * ratio_other, (
+            f"Острота пика (peak/mean) в фокусе ({ratio_focus:.1f}) должна быть минимум на порядок выше "
+            f"расфокусированной плоскости {other_idx} ({ratio_other:.1f})"
+        )
 
 # 3. Проверка метрик: совпадение с numpy.corrcoef и skimage, единица на одинаковых картинках
 def test_metrics_correctness() -> None:
