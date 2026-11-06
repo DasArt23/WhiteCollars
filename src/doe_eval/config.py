@@ -5,7 +5,7 @@ DISTANCES: tuple[float, ...] = (24.1e-3, 25.3e-3, 26.5e-3, 27.7e-3)
 NUM_PLANES: int = len(DISTANCES)
 
 # Формат папок датасета (согласуется в одном месте): data/<split>/<id>/1.png ... 4.png
-IMAGE_FILENAMES: tuple[str, ...] = ("1.png", "2.png", "3.png", "4.png")
+IMAGE_FILENAMES: tuple[str, ...] = ("01.png", "02.png", "03.png", "04.png")
 
 DEFAULT_NORM: str = "max"           # "max" | "minmax"
 DEFAULT_COMPARE: str = "amplitude"  # "amplitude" | "intensity"
