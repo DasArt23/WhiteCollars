@@ -52,10 +52,9 @@ class DOENet(nn.Module):
 class PhaseNet(DOENet):
     """Predict the full phase correction from four targets and optical features."""
 
-    def __init__(self, projection_iterations=12, *, aligned=True, correction_limit=None):
+    def __init__(self, projection_iterations=12, *, aligned=True):
         super().__init__(projection_iterations)
         self.aligned = aligned
-        self.correction_limit = (0.5 if aligned else torch.pi) if correction_limit is None else correction_limit
         self.features = nn.Sequential(
             nn.Conv2d(13 if aligned else 12, 32, 3, padding=1),
             nn.GroupNorm(4, 32),
@@ -84,7 +83,7 @@ class PhaseNet(DOENet):
         return features, phase, direction
 
     def predict_phase(self, features, initial_phase):
-        correction = self.correction_limit * self.field(self.features(features)).squeeze(1).tanh()
+        correction = (0.5 if self.aligned else torch.pi) * self.field(self.features(features)).squeeze(1).tanh()
         phase = initial_phase + correction
         return torch.atan2(phase.sin(), phase.cos())
 

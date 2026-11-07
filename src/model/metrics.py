@@ -1,9 +1,5 @@
 """Global Pearson and SSIM as specified in the task."""
-import math
-
 import torch
-
-BALANCE_TEMPERATURE = 0.02
 
 
 def compare_images(reconstructed, targets):
@@ -24,13 +20,3 @@ def compare_images(reconstructed, targets):
     )
     return torch.stack([ssim, pearson], dim=-1)
 
-
-
-
-def balanced_optical_loss(scores, baseline):
-    """Prefer gains on both metrics over a larger gain on only one."""
-    gains = scores - baseline
-    penalty = BALANCE_TEMPERATURE * (
-        torch.logsumexp(-gains / BALANCE_TEMPERATURE, dim=1) - math.log(2.0)
-    )
-    return 1.0 - baseline.mean() + penalty.mean()
