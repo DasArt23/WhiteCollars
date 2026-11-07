@@ -3,7 +3,41 @@
 Все команды выполняются **из корня репозитория**. Основной сценарий — Linux x86_64
 и Tesla V100. Полный цикл обучения запускаете вы; проверки его не запускают.
 
-## Актуальное дообучение: balanced-fidelity-v4
+## Актуальная цель: Pearson + global SSIM, global-fidelity-v5
+
+В v4 основной SSIM в loss и выборе checkpoint был оконным. По уточнению пользователя
+в v5 основной **global**: веса Pearson / global / local = 2 / 2 / 0,1.
+В ту же метрику переключены проверка регрессии, tie-break и уточнение фазы.
+Проверенные ограничения данных и прямые контрольные оптимизации описаны в
+[FUNDAMENTALS.md](FUNDAMENTALS.md). 0,8/0,8 не подтверждены.
+
+Если уже идёт v4, остановите его через Ctrl+C и сохраните его веса.
+Дообучение с исправленной целью (новый оптимизатор, исходный forward сохранён):
+
+```bash
+git pull --ff-only origin zakhar_sandbox
+uv run --extra v100 --frozen project train \
+  --manifest build/data_train4608/manifest.json \
+  --init-checkpoint checkpoints/train4608_v4/best_model.pt \
+  --checkpoint checkpoints/train4608_v5/best_model.pt \
+  --device cuda --precision fp32 --epochs 5 --batch-size 2 \
+  --lr 0.0001 --lr-schedule plateau \
+  --unroll-steps 6 --base-dim 48 --seed 3701 --polish-steps 0
+```
+
+`Guard` теперь относится к Pearson и **global SSIM**. Оконный SSIM остаётся в журнале.
+Обучение v5 не запускалось; по его эффекту на всей validation результатов ещё нет.
+Проверка необходимого физического условия, без оптимизации или обучения:
+
+```bash
+uv run --extra v100 --frozen python -m doe_eval.feasibility \
+  --manifest build/data_train4608/manifest.json --split train \
+  --out build/train_feasibility.json
+```
+
+Это диагностический отчёт: он не удаляет данные и не меняет split.
+
+## Прежнее дообучение: balanced-fidelity-v4
 
 При уже обученном `checkpoints/train4608_v3/best_model.pt` сохраните его и используйте
 дообучение с новой целью вместо запуска с нуля. Остановите старый запуск через Ctrl+C

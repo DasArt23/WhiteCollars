@@ -1,0 +1,2767 @@
+{
+  "scope": "Dataset necessary-condition audit plus direct phase optimization; no neural network training.",
+  "operator": "project single-FFT Fresnel, 128x128, uniform unit input amplitude, output amplitude/max, uint8 phase PNG roundtrip",
+  "train": {
+    "split": "train",
+    "samples": 4608,
+    "exact_targets_ruled_out": 4334,
+    "groups": {
+      "0.2.0": {
+        "total": 1000,
+        "ruled_out": 1000
+      },
+      "grayscale-1.0": {
+        "total": 3096,
+        "ruled_out": 3090
+      },
+      "exchange_A": {
+        "total": 256,
+        "ruled_out": 0
+      },
+      "exchange_B": {
+        "total": 256,
+        "ruled_out": 244
+      }
+    },
+    "note": "Necessary condition only. Does not give a Pearson/SSIM ceiling or optimizer convergence guarantee."
+  },
+  "validation": {
+    "split": "validation",
+    "samples": 100,
+    "exact_targets_ruled_out": 100,
+    "groups": {
+      "0.2.0": {
+        "total": 100,
+        "ruled_out": 100
+      }
+    },
+    "note": "Necessary condition only. Does not give a Pearson/SSIM ceiling or optimizer convergence guarantee.",
+    "rows": [
+      {
+        "id": "validation_000001",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4699910198828283,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.5317550576642969,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4699910198828283
+      },
+      {
+        "id": "validation_000002",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.314762090325487,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.3765261281069556,
+        "allowed_difference": 0.0617640377814686,
+        "pair_intensity_l1_error_sum_lower_bound": 1.314762090325487
+      },
+      {
+        "id": "validation_000003",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.459736904142319,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.5215009419237875,
+        "allowed_difference": 0.0617640377814686,
+        "pair_intensity_l1_error_sum_lower_bound": 1.459736904142319
+      },
+      {
+        "id": "validation_000004",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6244619821675421,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6988086798617408,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6244619821675421
+      },
+      {
+        "id": "validation_000005",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.603481534247995,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6652455720294637,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.603481534247995
+      },
+      {
+        "id": "validation_000006",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.339456277438999,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.52804973280799,
+        "allowed_difference": 0.18859345536899091,
+        "pair_intensity_l1_error_sum_lower_bound": 1.339456277438999
+      },
+      {
+        "id": "validation_000007",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4069327464901928,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.4812794441843915,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4069327464901928
+      },
+      {
+        "id": "validation_000008",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.568378260848169,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.6674371794637672,
+        "allowed_difference": 0.09905891861559832,
+        "pair_intensity_l1_error_sum_lower_bound": 1.568378260848169
+      },
+      {
+        "id": "validation_000009",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.22776256848727,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          2
+        ],
+        "target_difference": 1.3607380204715787,
+        "allowed_difference": 0.13297545198430882,
+        "pair_intensity_l1_error_sum_lower_bound": 1.22776256848727
+      },
+      {
+        "id": "validation_000010",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5232782254202863,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.5908970279996186,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5232782254202863
+      },
+      {
+        "id": "validation_000011",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3448698185417411,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.4192165162359398,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3448698185417411
+      },
+      {
+        "id": "validation_000012",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6774634351668591,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7392274729483277,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6774634351668591
+      },
+      {
+        "id": "validation_000013",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6259154627173475,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.687679500498816,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6259154627173475
+      },
+      {
+        "id": "validation_000014",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.112631988299194,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.2544190111610038,
+        "allowed_difference": 0.14178702286180994,
+        "pair_intensity_l1_error_sum_lower_bound": 1.112631988299194
+      },
+      {
+        "id": "validation_000015",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6666404168887399,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7409871145829385,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6666404168887399
+      },
+      {
+        "id": "validation_000016",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5981299379067895,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7273776582336693,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5981299379067895
+      },
+      {
+        "id": "validation_000017",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5862798520882384,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.648043889869707,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5862798520882384
+      },
+      {
+        "id": "validation_000018",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3940005033836598,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.4557645411651283,
+        "allowed_difference": 0.0617640377814686,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3940005033836598
+      },
+      {
+        "id": "validation_000019",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4775264003472548,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.6193134232090647,
+        "allowed_difference": 0.14178702286180994,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4775264003472548
+      },
+      {
+        "id": "validation_000020",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.1909726296913545,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.252736667472823,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.1909726296913545
+      },
+      {
+        "id": "validation_000021",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3088078634719105,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          2,
+          0
+        ],
+        "target_difference": 1.4302922192480862,
+        "allowed_difference": 0.12148435577617586,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3088078634719105
+      },
+      {
+        "id": "validation_000022",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.7648758404009781,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.8392225380951768,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.7648758404009781
+      },
+      {
+        "id": "validation_000023",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5957520242307028,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.6700987219249015,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5957520242307028
+      },
+      {
+        "id": "validation_000024",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.47484435837391,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6040920787007897,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.47484435837391
+      },
+      {
+        "id": "validation_000025",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.1641346004829254,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          2
+        ],
+        "target_difference": 1.2856189562591012,
+        "allowed_difference": 0.12148435577617586,
+        "pair_intensity_l1_error_sum_lower_bound": 1.1641346004829254
+      },
+      {
+        "id": "validation_000026",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4668063432951892,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.5658652619107876,
+        "allowed_difference": 0.09905891861559832,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4668063432951892
+      },
+      {
+        "id": "validation_000027",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.698988628757046,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.7733353264512446,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.698988628757046
+      },
+      {
+        "id": "validation_000028",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6880839412050395,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.8298709640668493,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6880839412050395
+      },
+      {
+        "id": "validation_000029",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.303519082568351,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          2,
+          0
+        ],
+        "target_difference": 1.556933465568488,
+        "allowed_difference": 0.2534143830001373,
+        "pair_intensity_l1_error_sum_lower_bound": 1.303519082568351
+      },
+      {
+        "id": "validation_000030",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.394608812906527,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.536395835768337,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.394608812906527
+      },
+      {
+        "id": "validation_000031",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6459861699721314,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.72033286766633,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6459861699721314
+      },
+      {
+        "id": "validation_000032",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6969214136485937,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.764540216227926,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6969214136485937
+      },
+      {
+        "id": "validation_000033",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.566115683936061,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6953634042629409,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.566115683936061
+      },
+      {
+        "id": "validation_000034",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3859209284864893,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.4535397310658216,
+        "allowed_difference": 0.06761880257933237,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3859209284864893
+      },
+      {
+        "id": "validation_000035",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3803326540114904,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          2
+        ],
+        "target_difference": 1.5265045644349593,
+        "allowed_difference": 0.14617191042346883,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3803326540114904
+      },
+      {
+        "id": "validation_000036",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 0.8065167236702127,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 0.905575642285811,
+        "allowed_difference": 0.09905891861559832,
+        "pair_intensity_l1_error_sum_lower_bound": 0.8065167236702127
+      },
+      {
+        "id": "validation_000037",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3831749548352643,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.457521652529463,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3831749548352643
+      },
+      {
+        "id": "validation_000038",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5432806989335177,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.61089950151285,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5432806989335177
+      },
+      {
+        "id": "validation_000039",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.8157642046370888,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.883383007216421,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.8157642046370888
+      },
+      {
+        "id": "validation_000040",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3771595915409627,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.444778394120295,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3771595915409627
+      },
+      {
+        "id": "validation_000041",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5279935136810927,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.6999768245181346,
+        "allowed_difference": 0.17198331083704188,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5279935136810927
+      },
+      {
+        "id": "validation_000042",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4057359608810271,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.4800826585752258,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4057359608810271
+      },
+      {
+        "id": "validation_000043",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4060231005273924,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.5352708208542722,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4060231005273924
+      },
+      {
+        "id": "validation_000044",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6379681129461758,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6997321507276444,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6379681129461758
+      },
+      {
+        "id": "validation_000045",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.645124882990646,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7869119058524559,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.645124882990646
+      },
+      {
+        "id": "validation_000046",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4487467350935546,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.5905337579553644,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4487467350935546
+      },
+      {
+        "id": "validation_000047",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.31564409870678,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          2,
+          0
+        ],
+        "target_difference": 1.4486195506910888,
+        "allowed_difference": 0.13297545198430885,
+        "pair_intensity_l1_error_sum_lower_bound": 1.31564409870678
+      },
+      {
+        "id": "validation_000048",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.1335509946578823,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.2236557793567884,
+        "allowed_difference": 0.09010478469890604,
+        "pair_intensity_l1_error_sum_lower_bound": 1.1335509946578823
+      },
+      {
+        "id": "validation_000049",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6387457297783277,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.70636453235766,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6387457297783277
+      },
+      {
+        "id": "validation_000050",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5303913096113346,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.5921553473928032,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5303913096113346
+      },
+      {
+        "id": "validation_000051",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4332699142591119,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.5323288328747102,
+        "allowed_difference": 0.09905891861559832,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4332699142591119
+      },
+      {
+        "id": "validation_000052",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3811760884341373,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.4429401262156059,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3811760884341373
+      },
+      {
+        "id": "validation_000053",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5587384828703643,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.6879862031972441,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5587384828703643
+      },
+      {
+        "id": "validation_000054",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5848920447098156,
+        "planes": [
+          1,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7879968732334104,
+        "allowed_difference": 0.2031048285235948,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5848920447098156
+      },
+      {
+        "id": "validation_000055",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5850587732341253,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.714306493561005,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5850587732341253
+      },
+      {
+        "id": "validation_000056",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5121270304692391,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.653914053331049,
+        "allowed_difference": 0.14178702286180994,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5121270304692391
+      },
+      {
+        "id": "validation_000057",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.2303109943790145,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.3720980172408244,
+        "allowed_difference": 0.14178702286180994,
+        "pair_intensity_l1_error_sum_lower_bound": 1.2303109943790145
+      },
+      {
+        "id": "validation_000058",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5672472415706646,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.666306160186263,
+        "allowed_difference": 0.09905891861559832,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5672472415706646
+      },
+      {
+        "id": "validation_000059",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5649289397775077,
+        "planes": [
+          1,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.7680337683011025,
+        "allowed_difference": 0.2031048285235948,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5649289397775077
+      },
+      {
+        "id": "validation_000060",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.562768075526677,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.6920157958535569,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.562768075526677
+      },
+      {
+        "id": "validation_000061",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.773263005951124,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.8350270437325926,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.773263005951124
+      },
+      {
+        "id": "validation_000062",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4531633852799812,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.5149274230614498,
+        "allowed_difference": 0.0617640377814686,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4531633852799812
+      },
+      {
+        "id": "validation_000063",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.0232132584871676,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          2,
+          0
+        ],
+        "target_difference": 1.1693851689106365,
+        "allowed_difference": 0.14617191042346886,
+        "pair_intensity_l1_error_sum_lower_bound": 1.0232132584871676
+      },
+      {
+        "id": "validation_000064",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3911467158206796,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.4654934135148783,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3911467158206796
+      },
+      {
+        "id": "validation_000065",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4205752227210982,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.5196341413366965,
+        "allowed_difference": 0.09905891861559832,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4205752227210982
+      },
+      {
+        "id": "validation_000066",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.76411479113938,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.8258788289208485,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.76411479113938
+      },
+      {
+        "id": "validation_000067",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4980901439483914,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6398771668102012,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4980901439483914
+      },
+      {
+        "id": "validation_000068",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3198100255917324,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.4099148102906385,
+        "allowed_difference": 0.09010478469890604,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3198100255917324
+      },
+      {
+        "id": "validation_000069",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4315332506409602,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.56078097096784,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4315332506409602
+      },
+      {
+        "id": "validation_000070",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.607671313670324,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.749458336532134,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.607671313670324
+      },
+      {
+        "id": "validation_000071",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.1994688979001098,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.3714522087371517,
+        "allowed_difference": 0.17198331083704188,
+        "pair_intensity_l1_error_sum_lower_bound": 1.1994688979001098
+      },
+      {
+        "id": "validation_000072",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.519605033059183,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.661392055920993,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.519605033059183
+      },
+      {
+        "id": "validation_000073",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4744680839600763,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.5420868865394086,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4744680839600763
+      },
+      {
+        "id": "validation_000074",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4976440576248073,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.5877488423237134,
+        "allowed_difference": 0.09010478469890604,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4976440576248073
+      },
+      {
+        "id": "validation_000075",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.2863681128367306,
+        "planes": [
+          1,
+          4
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.5558487736140485,
+        "allowed_difference": 0.269480660777318,
+        "pair_intensity_l1_error_sum_lower_bound": 1.2863681128367306
+      },
+      {
+        "id": "validation_000076",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5314390530224575,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6057857507166562,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5314390530224575
+      },
+      {
+        "id": "validation_000077",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6930833468021593,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.7607021493814916,
+        "allowed_difference": 0.06761880257933237,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6930833468021593
+      },
+      {
+        "id": "validation_000078",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3195721277086612,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.461359150570471,
+        "allowed_difference": 0.14178702286180994,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3195721277086612
+      },
+      {
+        "id": "validation_000079",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.7280642105393171,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.8024109082335158,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.7280642105393171
+      },
+      {
+        "id": "validation_000080",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5985920907332318,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6603561285147004,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5985920907332318
+      },
+      {
+        "id": "validation_000081",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4162634572931498,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.4780274950746184,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4162634572931498
+      },
+      {
+        "id": "validation_000082",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.832510539778807,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.9001293423581394,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.832510539778807
+      },
+      {
+        "id": "validation_000083",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6444570482997243,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.718803745993923,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6444570482997243
+      },
+      {
+        "id": "validation_000084",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.0169096973909548,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          0,
+          2
+        ],
+        "target_difference": 1.270324080391092,
+        "allowed_difference": 0.2534143830001373,
+        "pair_intensity_l1_error_sum_lower_bound": 1.0169096973909548
+      },
+      {
+        "id": "validation_000085",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3589089211511896,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          2
+        ],
+        "target_difference": 1.4803932769273653,
+        "allowed_difference": 0.12148435577617586,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3589089211511896
+      },
+      {
+        "id": "validation_000086",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5695446509241064,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.631308688705575,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5695446509241064
+      },
+      {
+        "id": "validation_000087",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.634976454318424,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7025952568977563,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.634976454318424
+      },
+      {
+        "id": "validation_000088",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5645998216617096,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.632218624241042,
+        "allowed_difference": 0.06761880257933237,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5645998216617096
+      },
+      {
+        "id": "validation_000089",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5440695097918236,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          0
+        ],
+        "target_difference": 1.6116883123711558,
+        "allowed_difference": 0.06761880257933237,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5440695097918236
+      },
+      {
+        "id": "validation_000090",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.400488216239362,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          1,
+          1
+        ],
+        "target_difference": 1.490593000938268,
+        "allowed_difference": 0.09010478469890604,
+        "pair_intensity_l1_error_sum_lower_bound": 1.400488216239362
+      },
+      {
+        "id": "validation_000091",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6382722638479132,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7800592867097231,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6382722638479132
+      },
+      {
+        "id": "validation_000092",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6922242455180914,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7598430480974236,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6922242455180914
+      },
+      {
+        "id": "validation_000093",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.6478714006618267,
+        "planes": [
+          3,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.7096354384432952,
+        "allowed_difference": 0.061764037781468606,
+        "pair_intensity_l1_error_sum_lower_bound": 1.6478714006618267
+      },
+      {
+        "id": "validation_000094",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4984244431823892,
+        "planes": [
+          2,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.5660432457617215,
+        "allowed_difference": 0.06761880257933238,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4984244431823892
+      },
+      {
+        "id": "validation_000095",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.5323943883807798,
+        "planes": [
+          2,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.6616421087076596,
+        "allowed_difference": 0.1292477203268798,
+        "pair_intensity_l1_error_sum_lower_bound": 1.5323943883807798
+      },
+      {
+        "id": "validation_000096",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.179556373254587,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.321343396116397,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.179556373254587
+      },
+      {
+        "id": "validation_000097",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.4140738737227432,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.4884205714169418,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.4140738737227432
+      },
+      {
+        "id": "validation_000098",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.3648725849642813,
+        "planes": [
+          1,
+          2
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.43921928265848,
+        "allowed_difference": 0.07434669769419872,
+        "pair_intensity_l1_error_sum_lower_bound": 1.3648725849642813
+      },
+      {
+        "id": "validation_000099",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.365748236858998,
+        "planes": [
+          1,
+          4
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.5688530653825927,
+        "allowed_difference": 0.2031048285235948,
+        "pair_intensity_l1_error_sum_lower_bound": 1.365748236858998
+      },
+      {
+        "id": "validation_000100",
+        "group": "0.2.0",
+        "exact_targets_ruled_out": true,
+        "passing_is_not_a_feasibility_certificate": true,
+        "tolerance": 0.01,
+        "max_moment_violation": 1.775696156612567,
+        "planes": [
+          1,
+          3
+        ],
+        "lag": [
+          0,
+          1
+        ],
+        "target_difference": 1.917483179474377,
+        "allowed_difference": 0.14178702286180989,
+        "pair_intensity_l1_error_sum_lower_bound": 1.775696156612567
+      }
+    ]
+  },
+  "initial_four_does": {
+    "pearson": 0.563188299536705,
+    "ssim_global": 0.3207167908549309,
+    "ssim_local": 0.06474724411964417
+  },
+  "direct_phase_optimization": {
+    "pearson_only": {
+      "seconds": 28.103417261998402,
+      "rows": [
+        {
+          "id": 1,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.7156460916933288,
+              "ssim_global": 0.11940730391573202,
+              "ssim_skimage": 0.03137759268433184
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.8399869397379777,
+              "ssim_global": 0.5062458621381073,
+              "ssim_skimage": 0.042115515755674536
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.6719484554215303,
+              "ssim_global": 0.4256866314675017,
+              "ssim_skimage": 0.04970839393659794
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.4700460190629758,
+              "ssim_global": 0.09788467672461543,
+              "ssim_skimage": 0.04235683230650441
+            }
+          ],
+          "mean": {
+            "pearson": 0.6744068764789531,
+            "ssim_global": 0.28730611856148913,
+            "ssim_skimage": 0.04138958367077718
+          }
+        },
+        {
+          "id": 34,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.8169623326664348,
+              "ssim_global": 0.2818828626124692,
+              "ssim_skimage": 0.06174001631782813
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.7623866093468378,
+              "ssim_global": 0.44599639101880556,
+              "ssim_skimage": 0.039504274858791835
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.3187715815709412,
+              "ssim_global": 0.15057317041734236,
+              "ssim_skimage": 0.039731040018486825
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.7915934762546223,
+              "ssim_global": 0.4002263648341178,
+              "ssim_skimage": 0.06250465304181882
+            }
+          ],
+          "mean": {
+            "pearson": 0.672428499959709,
+            "ssim_global": 0.3196696972206837,
+            "ssim_skimage": 0.0508699960592314
+          }
+        },
+        {
+          "id": 67,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.4796198595370329,
+              "ssim_global": 0.26647541777560896,
+              "ssim_skimage": 0.04321059392245904
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.6004076439266275,
+              "ssim_global": 0.18869756792307993,
+              "ssim_skimage": 0.05539830217788795
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.5037559403406758,
+              "ssim_global": 0.21031595031195827,
+              "ssim_skimage": 0.0441307835579851
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.6397082759447852,
+              "ssim_global": 0.31357285228510456,
+              "ssim_skimage": 0.05385591450907252
+            }
+          ],
+          "mean": {
+            "pearson": 0.5558729299372804,
+            "ssim_global": 0.24476544707393794,
+            "ssim_skimage": 0.04914889854185115
+          }
+        },
+        {
+          "id": 100,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.56977138605044,
+              "ssim_global": 0.14757199505894444,
+              "ssim_skimage": 0.04967212557712689
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.5909345112767179,
+              "ssim_global": 0.21178430814248864,
+              "ssim_skimage": 0.06629836145852135
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.4067459060324282,
+              "ssim_global": 0.15232216571539678,
+              "ssim_skimage": 0.027311744376665684
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.57018320548842,
+              "ssim_global": 0.2137425864196171,
+              "ssim_skimage": 0.041962005146611796
+            }
+          ],
+          "mean": {
+            "pearson": 0.5344087522120016,
+            "ssim_global": 0.18135526383411174,
+            "ssim_skimage": 0.046311059139731436
+          }
+        }
+      ],
+      "mean": {
+        "pearson": 0.609279264646986,
+        "ssim_global": 0.25827413167255564,
+        "ssim_skimage": 0.04692988435289779
+      }
+    },
+    "joint": {
+      "seconds": 89.37226325800293,
+      "rows": [
+        {
+          "id": 1,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.5579664979177376,
+              "ssim_global": 0.36544560312917923,
+              "ssim_skimage": 0.6035103751499531
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.7595415869160228,
+              "ssim_global": 0.18592109874237786,
+              "ssim_skimage": 0.6177066993796687
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.5832094687649737,
+              "ssim_global": 0.10569627386568335,
+              "ssim_skimage": 0.6169416332572545
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.36862089883699894,
+              "ssim_global": 0.29256150965904365,
+              "ssim_skimage": 0.6317435461589244
+            }
+          ],
+          "mean": {
+            "pearson": 0.5673346131089333,
+            "ssim_global": 0.23740612134907102,
+            "ssim_skimage": 0.6174755634864502
+          }
+        },
+        {
+          "id": 34,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.6711066796518999,
+              "ssim_global": 0.24135109413365857,
+              "ssim_skimage": 0.6743880716926185
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.6919135884570431,
+              "ssim_global": 0.04453227127155133,
+              "ssim_skimage": 0.6587442615308086
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.18925125426316622,
+              "ssim_global": 0.09021107700891438,
+              "ssim_skimage": 0.6543615005596163
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.68312136645242,
+              "ssim_global": 0.07914228095518343,
+              "ssim_skimage": 0.6749197686120546
+            }
+          ],
+          "mean": {
+            "pearson": 0.5588482222061323,
+            "ssim_global": 0.11380918084232694,
+            "ssim_skimage": 0.6656034005987744
+          }
+        },
+        {
+          "id": 67,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.42675090739357,
+              "ssim_global": 0.03797930064639076,
+              "ssim_skimage": 0.6282301344011735
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.5382234555275681,
+              "ssim_global": 0.2725490535410397,
+              "ssim_skimage": 0.6600037057966008
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.2929974755593915,
+              "ssim_global": 0.08969993016528327,
+              "ssim_skimage": 0.6350100816763271
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.5057902564948127,
+              "ssim_global": 0.062240442137754176,
+              "ssim_skimage": 0.6420679541618649
+            }
+          ],
+          "mean": {
+            "pearson": 0.4409405237438356,
+            "ssim_global": 0.11561718162261697,
+            "ssim_skimage": 0.6413279690089916
+          }
+        },
+        {
+          "id": 100,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.49962075427776975,
+              "ssim_global": 0.19118162249907972,
+              "ssim_skimage": 0.6531631278521269
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.45896854522866587,
+              "ssim_global": 0.09901864207161419,
+              "ssim_skimage": 0.6584351622738257
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.2578924242079271,
+              "ssim_global": 0.0520342144615601,
+              "ssim_skimage": 0.7007387681964745
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.3969022905651116,
+              "ssim_global": 0.04476208994124411,
+              "ssim_skimage": 0.6794825285643392
+            }
+          ],
+          "mean": {
+            "pearson": 0.40334600356986855,
+            "ssim_global": 0.09674914224337453,
+            "ssim_skimage": 0.6729548967216916
+          }
+        }
+      ],
+      "mean": {
+        "pearson": 0.4926173406571924,
+        "ssim_global": 0.14089540651434737,
+        "ssim_skimage": 0.649340457453977
+      }
+    },
+    "single_plane": {
+      "seconds": 22.048823250996065,
+      "rows": [
+        {
+          "id": 1,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.9998800629094311,
+              "ssim_global": 0.21710332858156592,
+              "ssim_skimage": 0.04463735586276082
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.38880304687649037,
+              "ssim_global": 0.11026197104157429,
+              "ssim_skimage": 0.03567704333436496
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.24056228360714138,
+              "ssim_global": 0.10050674024520286,
+              "ssim_skimage": 0.02294015764481359
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.009042053223381087,
+              "ssim_global": 0.018309916590911135,
+              "ssim_skimage": 0.007606167397693166
+            }
+          ],
+          "mean": {
+            "pearson": 0.409571861654111,
+            "ssim_global": 0.11154548911481355,
+            "ssim_skimage": 0.027715181059908132
+          }
+        },
+        {
+          "id": 34,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.9998817724331899,
+              "ssim_global": 0.3102207419887451,
+              "ssim_skimage": 0.0771319404674415
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.46091096839535484,
+              "ssim_global": 0.2620962987634475,
+              "ssim_skimage": 0.012080230407509633
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": -0.014488364244547103,
+              "ssim_global": 0.012084303089890999,
+              "ssim_skimage": 0.009044420906509608
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.46640646136760416,
+              "ssim_global": 0.2737483737384759,
+              "ssim_skimage": 0.019740171339681645
+            }
+          ],
+          "mean": {
+            "pearson": 0.4781777094879005,
+            "ssim_global": 0.21453742939513987,
+            "ssim_skimage": 0.029499190780285595
+          }
+        },
+        {
+          "id": 67,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.9998261181532581,
+              "ssim_global": 0.47185558827973956,
+              "ssim_skimage": 0.11739053200275233
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.11271298095391236,
+              "ssim_global": 0.0561853762849336,
+              "ssim_skimage": 0.010084672560580547
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": -0.026659866502945904,
+              "ssim_global": -0.0004426550060526953,
+              "ssim_skimage": 0.004902609130275473
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": -0.04846012658448439,
+              "ssim_global": -0.01546571555695724,
+              "ssim_skimage": 0.0051087902985285216
+            }
+          ],
+          "mean": {
+            "pearson": 0.25935477650493505,
+            "ssim_global": 0.12803314850041583,
+            "ssim_skimage": 0.034371650998034214
+          }
+        },
+        {
+          "id": 100,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.9998460539509716,
+              "ssim_global": 0.2655731308858283,
+              "ssim_skimage": 0.06594890186888537
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.0897303309203066,
+              "ssim_global": 0.06911938106065132,
+              "ssim_skimage": 0.017061066593080695
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": -0.019171755468852497,
+              "ssim_global": 0.008633818425914973,
+              "ssim_skimage": 0.009501359508230516
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": -0.023677444795281496,
+              "ssim_global": 0.00243650529646743,
+              "ssim_skimage": 0.007700395674652022
+            }
+          ],
+          "mean": {
+            "pearson": 0.2616817961517861,
+            "ssim_global": 0.08644070891721552,
+            "ssim_skimage": 0.025052930911212152
+          }
+        }
+      ],
+      "mean": {
+        "pearson": 0.3521965359496832,
+        "ssim_global": 0.1351391939818962,
+        "ssim_skimage": 0.029159738437360024
+      },
+      "plane_1_pearson_mean": 0.9998585018617127
+    },
+    "global_joint": {
+      "seconds": 31.374031864994322,
+      "rows": [
+        {
+          "id": 1,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.5800042151622685,
+              "ssim_global": 0.3521689017325962,
+              "ssim_skimage": 0.3258620460126537
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.8539458682879744,
+              "ssim_global": 0.750443467818611,
+              "ssim_skimage": 0.06494695705587256
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.704155171071793,
+              "ssim_global": 0.6451432211027577,
+              "ssim_skimage": 0.06203762296511744
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.37690464347172303,
+              "ssim_global": 0.2642066212963393,
+              "ssim_skimage": 0.30158533428466294
+            }
+          ],
+          "mean": {
+            "pearson": 0.6287524744984397,
+            "ssim_global": 0.502990552987576,
+            "ssim_skimage": 0.18860799007957668
+          }
+        },
+        {
+          "id": 34,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.7490843805229129,
+              "ssim_global": 0.5495273911039951,
+              "ssim_skimage": 0.19475563540443672
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.7762222488833289,
+              "ssim_global": 0.6807840562465332,
+              "ssim_skimage": 0.0634368174730107
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.27992722970238426,
+              "ssim_global": 0.22990108552924532,
+              "ssim_skimage": 0.163859040319143
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.7485699684894123,
+              "ssim_global": 0.60900036182777,
+              "ssim_skimage": 0.09105437847705519
+            }
+          ],
+          "mean": {
+            "pearson": 0.6384509568995096,
+            "ssim_global": 0.5173032236768859,
+            "ssim_skimage": 0.1282764679184114
+          }
+        },
+        {
+          "id": 67,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.47629709964144507,
+              "ssim_global": 0.39972351933348516,
+              "ssim_skimage": 0.05852711536129979
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.5667587122476652,
+              "ssim_global": 0.40206865286727755,
+              "ssim_skimage": 0.20930386066190762
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.4670456961150803,
+              "ssim_global": 0.3419055134212716,
+              "ssim_skimage": 0.12860615703478714
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.5955767189706755,
+              "ssim_global": 0.47055714895608763,
+              "ssim_skimage": 0.08447847991349791
+            }
+          ],
+          "mean": {
+            "pearson": 0.5264195567437164,
+            "ssim_global": 0.40356370864453045,
+            "ssim_skimage": 0.12022890324287311
+          }
+        },
+        {
+          "id": 100,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.4861098851663229,
+              "ssim_global": 0.3258698044773171,
+              "ssim_skimage": 0.17526324965590198
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.5906476985996414,
+              "ssim_global": 0.44899792150626855,
+              "ssim_skimage": 0.12541619224078518
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.41796078865501946,
+              "ssim_global": 0.30087451151056016,
+              "ssim_skimage": 0.12207580021284463
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.5227485346079709,
+              "ssim_global": 0.3830632389731329,
+              "ssim_skimage": 0.08066690178304606
+            }
+          ],
+          "mean": {
+            "pearson": 0.5043667267572386,
+            "ssim_global": 0.3647013691168197,
+            "ssim_skimage": 0.12585553597314447
+          }
+        }
+      ],
+      "mean": {
+        "pearson": 0.5744974287247261,
+        "ssim_global": 0.447139713606453,
+        "ssim_skimage": 0.14074222430350142
+      }
+    },
+    "global_only": {
+      "seconds": 29.92554822999955,
+      "rows": [
+        {
+          "id": 1,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.5167920610569704,
+              "ssim_global": 0.34471458619040185,
+              "ssim_skimage": 0.44872395232169277
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.8524906608521498,
+              "ssim_global": 0.7796738653774923,
+              "ssim_skimage": 0.12447027609027574
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.7056129457027572,
+              "ssim_global": 0.6636489011275967,
+              "ssim_skimage": 0.11657793400726053
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.32656327069227564,
+              "ssim_global": 0.2513497151457836,
+              "ssim_skimage": 0.42567117286807954
+            }
+          ],
+          "mean": {
+            "pearson": 0.6003647345760383,
+            "ssim_global": 0.5098467669603186,
+            "ssim_skimage": 0.27886083382182714
+          }
+        },
+        {
+          "id": 34,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.7094191254245124,
+              "ssim_global": 0.5468440838553205,
+              "ssim_skimage": 0.2563287737370563
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.7848321734253851,
+              "ssim_global": 0.7079433009507753,
+              "ssim_skimage": 0.08017693730906433
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.22996601934313035,
+              "ssim_global": 0.19894416929758985,
+              "ssim_skimage": 0.2231984396022118
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.7318053490639971,
+              "ssim_global": 0.6163756466327628,
+              "ssim_skimage": 0.11973288182885883
+            }
+          ],
+          "mean": {
+            "pearson": 0.6140056668142562,
+            "ssim_global": 0.517526800184112,
+            "ssim_skimage": 0.1698592581192978
+          }
+        },
+        {
+          "id": 67,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.48821489901947196,
+              "ssim_global": 0.42990970645874865,
+              "ssim_skimage": 0.18351504000879468
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.5327756641816418,
+              "ssim_global": 0.40875205977322165,
+              "ssim_skimage": 0.3897960779426313
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.39088002571969865,
+              "ssim_global": 0.306571862200918,
+              "ssim_skimage": 0.3113513952938205
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.5675379830117948,
+              "ssim_global": 0.4741712891374048,
+              "ssim_skimage": 0.23540192581221198
+            }
+          ],
+          "mean": {
+            "pearson": 0.49485214298315183,
+            "ssim_global": 0.4048512293925733,
+            "ssim_skimage": 0.28001610976436464
+          }
+        },
+        {
+          "id": 100,
+          "planes": [
+            {
+              "plane": 1,
+              "distance_mm": 24.1,
+              "pearson": 0.45121080393711616,
+              "ssim_global": 0.3230373789254739,
+              "ssim_skimage": 0.2436781587599658
+            },
+            {
+              "plane": 2,
+              "distance_mm": 25.3,
+              "pearson": 0.5693512820140361,
+              "ssim_global": 0.45873247612785606,
+              "ssim_skimage": 0.17316901537702756
+            },
+            {
+              "plane": 3,
+              "distance_mm": 26.5,
+              "pearson": 0.3917691860774428,
+              "ssim_global": 0.3002486204352898,
+              "ssim_skimage": 0.17862226340373866
+            },
+            {
+              "plane": 4,
+              "distance_mm": 27.7,
+              "pearson": 0.503257439326063,
+              "ssim_global": 0.38946638214324697,
+              "ssim_skimage": 0.11414425967981366
+            }
+          ],
+          "mean": {
+            "pearson": 0.4788971778386645,
+            "ssim_global": 0.36787121440796666,
+            "ssim_skimage": 0.17740342430513642
+          }
+        }
+      ],
+      "mean": {
+        "pearson": 0.5470299305530277,
+        "ssim_global": 0.45002400273624266,
+        "ssim_skimage": 0.2265349065026565
+      }
+    }
+  },
+  "limitations": [
+    "Necessary-condition violation rules out exact target matching; passing is not a certificate.",
+    "Does not establish an upper bound for Pearson or SSIM.",
+    "Direct optimization on four validation quartets is not a full-validation model result.",
+    "Architecture restriction and saturation contributions cannot be measured without the trained checkpoint."
+  ],
+  "manifest_sha256": "45db641345e513655723b57abca45ad47a305d9e8624810808fa5eb3c6ff3c69"
+}

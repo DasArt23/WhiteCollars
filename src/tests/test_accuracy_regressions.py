@@ -177,7 +177,7 @@ def test_polish_keeps_best_per_sample_and_evaluates_last_step():
         before_metrics = compute_sota_physics_loss(p0[None], target[None])[2]
         after_metrics = compute_sota_physics_loss(p1[None], target[None])[2]
         assert after_metrics["pearson"] >= before_metrics["pearson"] - 1e-6
-        assert after_metrics["ssim_local"] >= before_metrics["ssim_local"] - 1e-6
+        assert after_metrics["ssim_global"] >= before_metrics["ssim_global"] - 1e-6
         for key in (
             "foreground_error",
             "brightness_error",

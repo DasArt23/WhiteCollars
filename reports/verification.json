@@ -2,14 +2,15 @@
   "command": "make check",
   "device": "cpu",
   "torch": "2.10.0+cu126",
-  "pytest_passed": 50,
+  "pytest_passed": 56,
   "pytest_skipped": 0,
   "reference_relative_error": 1.12e-07,
   "ruff": "passed",
   "gpu_test": "not run: no CUDA device",
   "docker_build": "not run: Docker daemon access denied",
   "network_training": "not started: user will run training",
-  "loss_version": "balanced-fidelity-v4",
+  "loss_version": "global-fidelity-v5",
   "training_revision": "stable-carrier-v3",
-  "selection_revision": "metrics-spatial-worst-plane-v4"
+  "selection_revision": "global-metrics-spatial-worst-plane-v5",
+  "primary_ssim": "ssim_global"
 }

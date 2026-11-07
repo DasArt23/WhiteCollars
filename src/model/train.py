@@ -28,6 +28,7 @@ from model.data_connector import (
 from model.holonet import (
     LOSS_VERSION,
     METRIC_WEIGHTS,
+    PRIMARY_SSIM,
     WORST_PLANE_WEIGHT,
     HoloUnrollNet,
     compute_sota_physics_loss,
@@ -285,7 +286,8 @@ def train_model(
     )
     print(
         f"Initial | P: {initial_metrics['pearson']:.4f} "
-        f"SSIM: {initial_metrics['ssim_skimage']:.4f} Visual: {initial_metrics['visual_error']:.4f}",
+        f"SSIM global: {initial_metrics['ssim_global']:.4f} "
+        f"SSIM skimage: {initial_metrics['ssim_skimage']:.4f} Visual: {initial_metrics['visual_error']:.4f}",
         flush=True,
     )
 
@@ -301,11 +303,12 @@ def train_model(
                 "seed": seed,
                 "manifest_sha256": hashlib.sha256(manifest_p.read_bytes()).hexdigest(),
                 "metric_weights": METRIC_WEIGHTS,
+                "primary_ssim": PRIMARY_SSIM,
                 "loss_version": LOSS_VERSION,
                 "equalize_plane_power": model.equalize_plane_power,
                 "phase_carrier_seed": model.phase_carrier_seed,
                 "training_revision": "stable-carrier-v3",
-                "selection_revision": "metrics-spatial-worst-plane-v4",
+                "selection_revision": "global-metrics-spatial-worst-plane-v5",
                 "worst_plane_weight": WORST_PLANE_WEIGHT,
                 "precision": precision,
                 "lr_schedule": lr_schedule,
@@ -313,7 +316,7 @@ def train_model(
                 if init_checkpoint is not None
                 else None,
                 "initial_validation": initial_metrics,
-                "checkpoint_criterion": "balanced-fidelity-v4 loss; local SSIM breaks ties",
+                "checkpoint_criterion": "global-fidelity-v5 loss; global SSIM breaks ties",
                 "quantization": "uint8-ste",
                 "state_dict": state,
             },
@@ -323,7 +326,7 @@ def train_model(
 
     # Не заменяем хорошую инициализацию ухудшившейся первой эпохой.
     best_score = initial_metrics["score"]
-    best_ssim = initial_metrics["ssim_skimage"]
+    best_ssim = initial_metrics[PRIMARY_SSIM]
     best_epoch = 0
     best_state = save_checkpoint(0, initial_metrics)
     save_validation_previews(
@@ -401,7 +404,7 @@ def train_model(
         val_metrics = evaluate_loader(model, loaders["validation"], device)
         metric_guard = (
             val_metrics["pearson"] >= initial_metrics["pearson"]
-            and val_metrics["ssim_skimage"] >= initial_metrics["ssim_skimage"]
+            and val_metrics[PRIMARY_SSIM] >= initial_metrics[PRIMARY_SSIM]
         )
         if lr_schedule == "plateau":
             monitor = val_metrics["selection_error"]
@@ -459,14 +462,14 @@ def train_model(
 
         is_best = metric_guard and (
             val_metrics["score"],
-            val_metrics["ssim_skimage"],
+            val_metrics[PRIMARY_SSIM],
         ) > (
             best_score,
             best_ssim,
         )
         if is_best:
             best_score = val_metrics["score"]
-            best_ssim = val_metrics["ssim_skimage"]
+            best_ssim = val_metrics[PRIMARY_SSIM]
             best_epoch = epoch
             best_state = save_checkpoint(epoch, val_metrics)
             save_validation_previews(

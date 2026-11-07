@@ -24,8 +24,9 @@ from doe_eval.physics import (
 )
 
 # SSIM — основная метрика; Пирсон и физические ошибки защищают от тёмного пика.
-METRIC_WEIGHTS = (2.0, 0.10, 2.0)  # Pearson, global SSIM, local SSIM
-LOSS_VERSION = "balanced-fidelity-v4"
+METRIC_WEIGHTS = (2.0, 2.0, 0.10)  # Pearson, global SSIM, local SSIM
+PRIMARY_SSIM = "ssim_global"
+LOSS_VERSION = "global-fidelity-v5"
 WORST_PLANE_WEIGHT = 0.15
 
 
@@ -566,7 +567,7 @@ def hybrid_infer_phase(
             recon_amp = fresnel_reconstruct(q_phase)
             loss, _, planes = _image_objective(recon_amp, targets_f32)
             quality_scores = -planes["selection_error"]
-            sl_val = planes["ssim_local"].mean(dim=1)
+            sl_val = planes[PRIMARY_SSIM].mean(dim=1)
             p_val = planes["pearson"].mean(dim=1)
             if initial_pearson is None:
                 initial_pearson = p_val.detach().clone()

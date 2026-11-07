@@ -2,13 +2,15 @@
 
 from copy import deepcopy
 
+import pytest
 import torch
 
 from model import train
 
 
+@pytest.mark.parametrize("regression", ["pearson", "global_ssim"])
 def test_metric_regression_preserves_initial_checkpoint_and_plateau_reduces_lr(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, regression
 ):
     class Tiny(torch.nn.Module):
         def __init__(self):
@@ -50,8 +52,8 @@ def test_metric_regression_preserves_initial_checkpoint_and_plateau_reduces_lr(
         selection = 1.0 if calls == 1 else 0.9
         return {
             "loss": selection,
-            "pearson": 0.6 if calls == 1 else 0.5,
-            "ssim_global": 0.2,
+            "pearson": 0.6 if calls == 1 or regression == "global_ssim" else 0.5,
+            "ssim_global": 0.2 if calls == 1 or regression == "pearson" else 0.1,
             "ssim_skimage": 0.2 if calls == 1 else 0.3,
             "shape_error": 1.0,
             "visual_error": 1.0,
