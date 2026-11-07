@@ -48,6 +48,48 @@ def plane_crosstalk_error_torch(
     return (weights * confusion).sum(-1) / weights.sum(-1).clamp_min(1e-8)
 
 
+def spatial_fidelity_errors_torch(
+    amplitude: torch.Tensor, target: torch.Tensor
+) -> dict[str, torch.Tensor]:
+    """Ошибки физического поля, [B,D]; не меняют восстановление и метрики ТЗ.
+
+    Энергия нормируется отдельно в каждой плоскости. Чужой объект штрафуется
+    только там, где своя цель почти чёрная: совпадающие цели не конфликтуют.
+    Ошибка перепадов сравнивается с целью, сохраняя нужные границы и текстуры.
+    """
+    if amplitude.shape != target.shape or amplitude.ndim != 4:
+        raise ValueError("Ожидались одинаковые тензоры [B,D,H,W]")
+    power = amplitude.square()
+    energy = power / power.mean((-2, -1), keepdim=True).clamp_min(1e-12)
+    target_power = target.square()
+    desired = target_power / target_power.mean((-2, -1), keepdim=True).clamp_min(1e-12)
+    background = (target <= 0.02).to(target.dtype)
+    eye = torch.eye(target.shape[1], device=target.device, dtype=target.dtype)
+    other = (target[:, None] * (1 - eye)[None, :, :, None, None]).amax(2)
+    foreign = (other > 0.1).to(target.dtype) * background
+    recon = amplitude / amplitude.amax((-2, -1), keepdim=True).clamp_min(1e-12)
+    multiscale = []
+    for kernel in (1, 3, 7):
+        x = F.avg_pool2d(recon, kernel, stride=1) if kernel > 1 else recon
+        y = F.avg_pool2d(target, kernel, stride=1) if kernel > 1 else target
+        multiscale.append(
+            (x - y).square().mean((-2, -1)) / y.square().mean((-2, -1)).clamp_min(0.01)
+        )
+    error = recon - target
+    edge = (
+        (error[..., 1:, :] - error[..., :-1, :]).square().mean((-2, -1))
+        + (error[..., :, 1:] - error[..., :, :-1]).square().mean((-2, -1))
+    ) / target_power.mean((-2, -1)).clamp_min(0.01)
+    return {
+        "background_energy": (energy * background).mean((-2, -1)),
+        "foreign_energy": (energy * foreign).mean((-2, -1)),
+        "multiscale_error": torch.stack(multiscale).mean(0),
+        "edge_error": edge,
+        "power_error": (energy - desired).square().mean((-2, -1))
+        / desired.square().mean((-2, -1)).clamp_min(1.0),
+    }
+
+
 def pearson(a: np.ndarray, b: np.ndarray) -> float:
     """Коэффициент корреляции Пирсона между двумя картинками в [0, 1]."""
     a64 = np.asarray(a, dtype=np.float64).ravel()

@@ -18,6 +18,7 @@ from doe_eval.metrics import (
     pearson,
     pearson_torch,
     plane_crosstalk_error_torch,
+    spatial_fidelity_errors_torch,
     ssim_local_7x7_torch,
 )
 from doe_eval.physics import (
@@ -34,7 +35,11 @@ from model.holonet import (
     compute_sota_physics_loss,
     hybrid_infer_phase,
 )
-from model.train import evaluate_loader, save_validation_previews
+from model.train import (
+    evaluate_loader,
+    initialize_training_model,
+    save_validation_previews,
+)
 
 
 @pytest.mark.parametrize("kind", ["random", "sparse", "black", "white"])
@@ -154,16 +159,32 @@ def test_polish_keeps_best_per_sample_and_evaluates_last_step():
     initial = torch.rand(2, N, N) * (2 * math.pi) - math.pi
     targets = torch.rand(2, 4, N, N)
     before = _scores(initial, targets)
+    timings = {}
     with patch(
         "model.holonet.fresnel_reconstruct", wraps=fresnel_reconstruct
     ) as propagate:
-        improved = hybrid_infer_phase(FixedPhase(), targets, polish_steps=1)
+        improved = hybrid_infer_phase(
+            FixedPhase(), targets, polish_steps=1, timings=timings
+        )
+    assert timings["network_ms"] >= 0
+    assert timings["refinement_ms"] > 0
     assert (
         propagate.call_count == 2
     )  # начальная фаза и результат единственного шага Adam
     after = _scores(improved, targets)
     assert torch.all(after >= before - 1e-6)
-    assert torch.any(after > before + 1e-6)
+    for p0, p1, target in zip(initial, improved, targets):
+        before_metrics = compute_sota_physics_loss(p0[None], target[None])[2]
+        after_metrics = compute_sota_physics_loss(p1[None], target[None])[2]
+        assert after_metrics["pearson"] >= before_metrics["pearson"] - 1e-6
+        assert after_metrics["ssim_local"] >= before_metrics["ssim_local"] - 1e-6
+        for key in (
+            "foreground_error",
+            "brightness_error",
+            "background_error",
+            "edge_error",
+        ):
+            assert after_metrics[key] <= before_metrics[key] + 1e-6
 
 
 def test_validation_reports_same_local_ssim_as_final_evaluation():
@@ -223,12 +244,14 @@ def test_selection_includes_worst_plane_and_matches_training_penalty():
     expected = planes["visual_error"].mean(-1) + WORST_PLANE_WEIGHT * planes[
         "shape_error"
     ].amax(-1)
-    torch.testing.assert_close(planes["selection_error"], expected)
     auxiliary = sum(
         weight * (1 - planes[key]).mean()
         for weight, key in zip(METRIC_WEIGHTS, ["pearson", "ssim_global", "ssim_local"])
     )
-    torch.testing.assert_close(loss, expected.mean() + auxiliary)
+    torch.testing.assert_close(
+        planes["selection_error"].mean(), expected.mean() + auxiliary
+    )
+    torch.testing.assert_close(loss, planes["selection_error"].mean())
     torch.testing.assert_close(planes["worst_pearson"], planes["pearson"].amin(-1))
 
 
@@ -353,6 +376,63 @@ def test_depth_confusion_penalizes_swapped_images_and_allows_identical_targets()
     assert torch.isfinite(swapped.grad).all() and swapped.grad.abs().sum() > 0
     same = targets[:, :1].expand(-1, 4, -1, -1)
     assert plane_crosstalk_error_torch(same, same).max() < 1e-8
+
+
+def test_spatial_fidelity_detects_visible_ghost_even_when_own_correlation_wins():
+    target = torch.zeros(1, 4, 32, 32)
+    for plane in range(4):
+        target[:, plane, 4:12, plane * 7 : plane * 7 + 5] = 1
+    ghost = target + 0.5 * target.roll(1, dims=1)
+    # Старый сравнительный штраф не видит этот паразитный объект.
+    assert plane_crosstalk_error_torch(ghost, target).max() < 1e-8
+    errors = spatial_fidelity_errors_torch(ghost.requires_grad_(), target)
+    assert errors["foreign_energy"].min() > 0
+    assert errors["background_energy"].min() > 0
+    sum(x.mean() for x in errors.values()).backward()
+    assert torch.isfinite(ghost.grad).all() and ghost.grad.abs().sum() > 0
+    identical = spatial_fidelity_errors_torch(target, target)
+    assert all(x.max() < 1e-8 for x in identical.values())
+    same = target[:, :1].expand(-1, 4, -1, -1)
+    assert spatial_fidelity_errors_torch(same, same)["foreign_energy"].max() == 0
+
+
+def test_spatial_fidelity_preserves_gray_targets_and_penalizes_speckle():
+    target = torch.full((1, 4, 32, 32), 0.5)
+    target[..., 8:20, 8:20] = 1
+    noise = torch.zeros_like(target)
+    noise[..., ::2, ::2] = 0.15
+    exact = spatial_fidelity_errors_torch(target, target)
+    noisy = spatial_fidelity_errors_torch(target + noise, target)
+    assert exact["background_energy"].max() == 0
+    assert exact["foreign_energy"].max() == 0
+    assert exact["edge_error"].max() == 0
+    assert noisy["edge_error"].min() > 0
+    assert noisy["power_error"].min() > 0
+    zero = torch.zeros_like(target, requires_grad=True)
+    sum(x.mean() for x in spatial_fidelity_errors_torch(zero, zero).values()).backward()
+    assert torch.isfinite(zero.grad).all()
+
+
+def test_finetune_preserves_carrier_forward_and_checks_architecture(tmp_path):
+    model = HoloUnrollNet(unroll_steps=1, base_dim=8, phase_carrier_seed=57)
+    path = tmp_path / "initial.pt"
+    torch.save(
+        {
+            "state_dict": model.state_dict(),
+            "unroll_steps": 1,
+            "base_dim": 8,
+            "phase_carrier_seed": 57,
+            "equalize_plane_power": True,
+        },
+        path,
+    )
+    restored = initialize_training_model(1, 8, 3701, path)
+    assert restored.phase_carrier_seed == 57
+    target = torch.from_numpy(generate_synthetic_targets()).unsqueeze(0)
+    with torch.no_grad():
+        torch.testing.assert_close(model(target), restored(target))
+    with pytest.raises(ValueError, match="base_dim"):
+        initialize_training_model(1, 16, 3701, path)
 
 
 def test_stable_phase_initialization_handles_zero_encoder_outputs():

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Sequence
 
 import torch
@@ -11,6 +12,7 @@ from doe_eval.config import DISTANCES, PIXEL, WAVELENGTH, N
 from doe_eval.metrics import (
     amplitude_shape_error_torch,
     plane_crosstalk_error_torch,
+    spatial_fidelity_errors_torch,
     ssim_local_7x7_torch,
 )
 from doe_eval.physics import (
@@ -21,9 +23,9 @@ from doe_eval.physics import (
     ste_quantize,
 )
 
-# Вспомогательные веса; главный член loss — ошибка формы амплитуды.
-METRIC_WEIGHTS = (0.20, 0.10, 0.30)  # Pearson, global SSIM, local SSIM
-LOSS_VERSION = "visual-fit-v2"
+# SSIM — основная метрика; Пирсон и физические ошибки защищают от тёмного пика.
+METRIC_WEIGHTS = (2.0, 0.10, 2.0)  # Pearson, global SSIM, local SSIM
+LOSS_VERSION = "balanced-fidelity-v4"
 WORST_PLANE_WEIGHT = 0.15
 
 
@@ -419,7 +421,7 @@ def _image_objective(
     w_bg_suppress: float = 0.0,
     w_worst_plane: float = WORST_PLANE_WEIGHT,
 ):
-    """Общий критерий обучения и уточнения; форма важнее совпадения чёрного фона."""
+    """Метрики ТЗ вместе с ошибками энергии, структуры и чужих объектов."""
     recon = normalize_reconstructions(recon_amp)
     shape = amplitude_shape_error_torch(recon_amp, targets)
     p = pearson_torch(recon, targets)
@@ -429,34 +431,45 @@ def _image_objective(
     foreground_error = ((recon - targets).square() * foreground).sum(
         (-2, -1)
     ) / foreground.sum((-2, -1)).clamp_min(1e-8)
+    brightness_error = (
+        (recon * targets).sum((-2, -1)) - foreground.sum((-2, -1))
+    ).abs() / targets.sum((-2, -1)).clamp_min(1e-8)
     crosstalk = plane_crosstalk_error_torch(recon, targets)
-    visual = shape + 1.5 * foreground_error + 10.0 * crosstalk
+    fidelity = spatial_fidelity_errors_torch(recon_amp, targets)
+    visual = (
+        0.25 * shape
+        + 1.5 * foreground_error
+        + 0.5 * fidelity["power_error"]
+        + 0.5 * fidelity["multiscale_error"]
+        + 0.15 * fidelity["edge_error"]
+        + 0.25 * fidelity["foreign_energy"]
+    )
+    bg = (targets <= 0.02).to(targets.dtype)
+    background_error = (recon.square() * bg).sum((-2, -1)) / bg.sum((-2, -1)).clamp_min(
+        1
+    )
+    if w_bg_suppress:
+        visual = visual + w_bg_suppress * background_error
     # Один критерий для выбора checkpoint и кандидата после уточнения фазы.
     # Худшая плоскость уже штрафуется в loss и не должна теряться при выборе.
-    selection_error = visual.mean(dim=-1) + w_worst_plane * shape.amax(dim=-1)
-    loss = (
+    plane_loss = (
         visual
         + w_pearson * (1 - p)
         + w_ssim_global * (1 - sg)
         + w_ssim_local * (1 - sl)
-    ).mean()
-    loss = loss + w_worst_plane * shape.amax(dim=-1).mean()
-    if w_bg_suppress:
-        bg = (targets < 0.02).float()
-        loss = (
-            loss
-            + w_bg_suppress
-            * (
-                (recon.square() * bg).sum((-2, -1)) / bg.sum((-2, -1)).clamp_min(1)
-            ).mean()
-        )
+    )
+    selection_error = plane_loss.mean(dim=-1) + w_worst_plane * shape.amax(dim=-1)
+    loss = selection_error.mean()
     planes = {
         "pearson": p,
         "ssim_global": sg,
         "ssim_local": sl,
         "shape_error": shape,
         "foreground_error": foreground_error,
+        "brightness_error": brightness_error,
         "crosstalk": crosstalk,
+        **fidelity,
+        "background_error": background_error,
         "visual_error": visual,
         "selection_error": selection_error,
         "worst_pearson": p.amin(dim=-1),
@@ -474,7 +487,7 @@ def compute_sota_physics_loss(
     w_bg_suppress: float = 0.0,
     w_worst_plane: float = WORST_PLANE_WEIGHT,
 ) -> tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
-    """Квантованная физика: RMS-ошибка формы и вспомогательные метрики.
+    """Квантованная физика: метрики, энергия и пространственная точность.
 
     RMS-нормировка применяется только в обучающем критерии. Выходные изображения
     и официальные метрики по-прежнему используют amplitude/max из ТЗ проекта.
@@ -499,7 +512,8 @@ def hybrid_infer_phase(
     model: nn.Module,
     targets: torch.Tensor,
     polish_steps: int = 20,
-    polish_lr: float = 0.06,
+    polish_lr: float = 0.035,
+    timings: dict[str, float] | None = None,
 ) -> torch.Tensor:
     """Прямой проход сети и необязательное уточнение квантованной фазы.
 
@@ -508,11 +522,20 @@ def hybrid_infer_phase(
     """
     if polish_steps < 0 or polish_lr <= 0:
         raise ValueError("polish_steps >= 0 и polish_lr > 0")
+    if timings is not None and targets.device.type == "cuda":
+        torch.cuda.synchronize(targets.device)
+    start = time.perf_counter()
     model.eval()
     with torch.no_grad():
         init_phase = model(targets)
         if init_phase.ndim == 4 and init_phase.shape[1] == 1:
             init_phase = init_phase.squeeze(1)
+    if timings is not None:
+        if targets.device.type == "cuda":
+            torch.cuda.synchronize(targets.device)
+        timings["network_ms"] = (time.perf_counter() - start) * 1000
+        timings["refinement_ms"] = 0.0
+    refinement_start = time.perf_counter()
 
     if polish_steps <= 0:
         return init_phase
@@ -529,6 +552,12 @@ def hybrid_infer_phase(
         best_phase = phase.detach().clone()
         best_score = torch.full((targets.shape[0],), -1e9, device=targets.device)
         best_ssim = torch.full_like(best_score, -1e9)
+        initial_pearson = None
+        initial_ssim = None
+        initial_foreground = None
+        initial_background = None
+        initial_edge = None
+        initial_brightness = None
 
         for step in range(polish_steps + 1):
             optimizer.zero_grad(set_to_none=True)
@@ -538,11 +567,31 @@ def hybrid_infer_phase(
             loss, _, planes = _image_objective(recon_amp, targets_f32)
             quality_scores = -planes["selection_error"]
             sl_val = planes["ssim_local"].mean(dim=1)
+            p_val = planes["pearson"].mean(dim=1)
+            if initial_pearson is None:
+                initial_pearson = p_val.detach().clone()
+                initial_ssim = sl_val.detach().clone()
+                initial_foreground = (
+                    planes["foreground_error"].mean(dim=1).detach().clone()
+                )
+                initial_background = (
+                    planes["background_error"].mean(dim=1).detach().clone()
+                )
+                initial_edge = planes["edge_error"].mean(dim=1).detach().clone()
+                initial_brightness = (
+                    planes["brightness_error"].mean(dim=1).detach().clone()
+                )
 
             with torch.no_grad():
                 improved = (quality_scores > best_score) | (
                     (quality_scores == best_score) & (sl_val > best_ssim)
                 )
+                # Не покупаем SSIM ухудшением Пирсона и наоборот.
+                improved &= (p_val >= initial_pearson) & (sl_val >= initial_ssim)
+                improved &= planes["foreground_error"].mean(dim=1) <= initial_foreground
+                improved &= planes["background_error"].mean(dim=1) <= initial_background
+                improved &= planes["edge_error"].mean(dim=1) <= initial_edge
+                improved &= planes["brightness_error"].mean(dim=1) <= initial_brightness
                 best_score = torch.where(improved, quality_scores, best_score)
                 best_ssim = torch.where(improved, sl_val, best_ssim)
                 best_phase[improved] = wrapped.detach()[improved]
@@ -550,8 +599,31 @@ def hybrid_infer_phase(
             if step == polish_steps:
                 break
 
-            loss.backward()
+            # Направляем следующие шаги обратно к допустимым метрикам и яркости,
+            # если оптимизатор ушёл в решение с хорошим SSIM и тёмным объектом.
+            guard = (
+                10.0 * (initial_pearson - p_val).clamp_min(0)
+                + 10.0 * (initial_ssim - sl_val).clamp_min(0)
+                + 2.0
+                * (
+                    planes["foreground_error"].mean(dim=1) - initial_foreground
+                ).clamp_min(0)
+                + 20.0
+                * (
+                    planes["background_error"].mean(dim=1) - initial_background
+                ).clamp_min(0)
+                + (planes["edge_error"].mean(dim=1) - initial_edge).clamp_min(0)
+                + 2.0
+                * (
+                    planes["brightness_error"].mean(dim=1) - initial_brightness
+                ).clamp_min(0)
+            ).mean()
+            (loss + guard).backward()
             optimizer.step()
             scheduler.step()
 
+    if timings is not None:
+        if targets.device.type == "cuda":
+            torch.cuda.synchronize(targets.device)
+        timings["refinement_ms"] = (time.perf_counter() - refinement_start) * 1000
     return best_phase

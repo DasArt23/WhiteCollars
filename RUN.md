@@ -3,6 +3,78 @@
 Все команды выполняются **из корня репозитория**. Основной сценарий — Linux x86_64
 и Tesla V100. Полный цикл обучения запускаете вы; проверки его не запускают.
 
+## Актуальное дообучение: balanced-fidelity-v4
+
+При уже обученном `checkpoints/train4608_v3/best_model.pt` сохраните его и используйте
+дообучение с новой целью вместо запуска с нуля. Остановите старый запуск через Ctrl+C
+перед обновлением кода. Затем:
+
+```bash
+git pull --ff-only origin zakhar_sandbox
+uv sync --extra v100 --frozen
+uv run --extra v100 --frozen project train \
+  --manifest build/data_train4608/manifest.json \
+  --init-checkpoint checkpoints/train4608_v3/best_model.pt \
+  --checkpoint checkpoints/train4608_v4/best_model.pt \
+  --device cuda --precision fp32 --epochs 10 --batch-size 2 \
+  --lr 0.0001 --lr-schedule plateau \
+  --unroll-steps 6 --base-dim 48 --seed 3701 --polish-steps 0
+```
+
+Это загрузка весов с новым AdamW, а не восстановление состояния прежнего оптимизатора.
+Сохраняются carrier и параметры физического forward исходного checkpoint.
+При отсутствии допустимого улучшения validation loss три эпохи LR уменьшается вдвое;
+эпоха с провалом проверки Пирсона/SSIM также считается отсутствием прогресса.
+Для A-целей из оптической симуляции выключена перестановка плоскостей; уже созданный
+manifest повторно собирать не требуется. Test и stress не используются для настройки LR.
+
+Критерий v4: `2*(1-Pearson) + 0.1*(1-globalSSIM) + 2*(1-localSSIM)` плюс
+`0.25*shape + 1.5*foreground + 0.5*power + 0.5*multiscale + 0.15*edge + 0.25*foreign`;
+добавлен прежний штраф худшей формы `0.15*max(shape)`. `power` сравнивает
+распределение энергии, `edge` — ошибку перепадов относительно цели, `foreign` —
+энергию чужих объектов на почти чёрных участках своей цели. Это члены loss,
+а не подмена amplitude/max при проверке. Значения `Visual` между v2 и v4 несопоставимы.
+
+Новый checkpoint выбирается при Пирсоне и local SSIM не ниже начальной модели
+на validation. `Guard: FAIL` означает отказ от сохранения такой эпохи.
+`Select` — критерий выбора, `BG` — ошибка на почти чёрном фоне, `Ghost` — доля
+энергии в областях чужих объектов. Компоненты сохраняются в training_history.json.
+Сравнивайте панели `initial_previews/` и `previews/` после первых двух эпох.
+Если остаётся `epoch=0`, дообучение не дало допустимого улучшения: сохранены
+исходные веса текущего запуска, которые при --init-checkpoint уже могли быть обученными.
+Полное обучение v4 здесь не запускалось; улучшение сети пока не подтверждено.
+
+Без нового обучения можно проверить уточнение фазы старой сети:
+
+```bash
+uv run --extra v100 --frozen project predict \
+  --checkpoint checkpoints/train4608_v3/best_model.pt \
+  --sample-dir src/dataset/data/validation/000067 \
+  --out outputs/refined_v4 --device cuda --polish-steps 200
+```
+
+Уточнение сохраняет начальный вариант и выбирает кандидат с не меньшими средними
+по четвёрке Пирсоном и local SSIM, не большей ошибкой яркости объекта, фона и
+перепадов. Если совместного улучшения нет, возвращается исходная фаза. Это
+не гарантирует улучшения каждой плоскости по отдельности и не убирает весь шум.
+Точечная проверка на присланных DOE PNG без обучения сети:
+
+```bash
+uv run --extra v100 --frozen python scripts/diagnose_suppression.py \
+  --predictions checkpoints/train4608_v3/previews --steps 200 \
+  --out build/final_suppression_v4
+```
+
+Скачивание validation-панелей **с локального компьютера**:
+
+```bash
+tsh scp --insecure -r \
+  fen1x@v100-cc150-server:/home/fen1x/WhiteCollars/checkpoints/train4608_v4/previews \
+  ./previews_v4
+```
+
+Ниже оставлены подготовка окружения и примеры прежних запусков.
+
 ## 1. Установить окружение
 
 Если `uv` ещё не установлен:

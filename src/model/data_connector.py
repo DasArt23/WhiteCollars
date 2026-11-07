@@ -27,7 +27,9 @@ from doe_eval.config import (
 from doe_eval.io import load_target_png, save_doe_png
 
 EXPECTED_FORMAT = "doe-manifest/1"
-EXPECTED_DISTANCES_MM = [round(z * 1e3, 1) for z in DISTANCES]  # [24.1, 25.3, 26.5, 27.7]
+EXPECTED_DISTANCES_MM = [
+    round(z * 1e3, 1) for z in DISTANCES
+]  # [24.1, 25.3, 26.5, 27.7]
 VALID_SPLITS = ("train", "validation", "test", "diagnostic")
 
 
@@ -116,14 +118,23 @@ def load_manifest(
             raise ValueError(f"{sid}: ожидалось 4 изображения, получено {len(imgs)}")
 
         if list(rec.get("distances_mm", [])) != EXPECTED_DISTANCES_MM:
-            raise ValueError(f"{sid}: расстояния {rec.get('distances_mm')} != {EXPECTED_DISTANCES_MM}")
+            raise ValueError(
+                f"{sid}: расстояния {rec.get('distances_mm')} != {EXPECTED_DISTANCES_MM}"
+            )
 
         for rel in imgs:
             if str(rel).startswith("previews/"):
-                raise ValueError(f"{sid}: файлы из previews/ не должны входить в samples ({rel})")
+                raise ValueError(
+                    f"{sid}: файлы из previews/ не должны входить в samples ({rel})"
+                )
             path = (root_dir / rel).resolve()
-            if not path.is_relative_to(root_dir.resolve()) or Path(rel).parts[0] != split:
-                raise ValueError(f"{sid}: путь выходит за датасет или относится к другому split: {rel}")
+            if (
+                not path.is_relative_to(root_dir.resolve())
+                or Path(rel).parts[0] != split
+            ):
+                raise ValueError(
+                    f"{sid}: путь выходит за датасет или относится к другому split: {rel}"
+                )
         if [Path(rel).name for rel in imgs] not in (
             [f"{i}.png" for i in range(1, NUM_PLANES + 1)],
             [f"{i:02d}.png" for i in range(1, NUM_PLANES + 1)],
@@ -152,7 +163,9 @@ def load_manifest(
         )
 
     ordered_counts = {
-        k: counts[k] for k in ("diagnostic", "train", "validation", "test") if counts[k] > 0
+        k: counts[k]
+        for k in ("diagnostic", "train", "validation", "test")
+        if counts[k] > 0
     }
     report = ManifestReport(
         counts=ordered_counts,
@@ -169,6 +182,7 @@ def load_manifest(
         samples=samples,
         report=report,
     )
+
 
 class ManifestQuartetDataset(Dataset):
     def __init__(
@@ -202,11 +216,14 @@ class ManifestQuartetDataset(Dataset):
         self.augment_dihedral = augment_dihedral
         self.rng = np.random.default_rng(seed)
 
-        # Предзагрузка всех четвёрок в RAM один раз (200 четвёрок = всего 13 МБ!)
+        # Float32: около 256 КиБ на четвёрку; 4608 примеров занимают ~1,2 ГБ.
         self._cache: list[np.ndarray] | None = None
         if preload:
             self._cache = [
-                np.stack([_validate_and_load_png(self.root_dir / rel) for rel in rec.images], axis=0)
+                np.stack(
+                    [_validate_and_load_png(self.root_dir / rel) for rel in rec.images],
+                    axis=0,
+                )
                 for rec in self.samples
             ]
 
@@ -222,10 +239,16 @@ class ManifestQuartetDataset(Dataset):
         if self._cache is not None:
             arr = self._cache[idx].copy()
         else:
-            arr = np.stack([_validate_and_load_png(self.root_dir / rel) for rel in record.images], axis=0)
+            arr = np.stack(
+                [_validate_and_load_png(self.root_dir / rel) for rel in record.images],
+                axis=0,
+            )
 
         if self.split == "train":
-            if self.augment_channel_shuffle:
+            fixed_planes = record.params.get("preserve_plane_order", False) or (
+                record.params.get("exchange", {}).get("kind") == "A"
+            )
+            if self.augment_channel_shuffle and not fixed_planes:
                 arr = arr[self.rng.permutation(4)]
             if self.augment_dihedral:
                 k = int(self.rng.integers(0, 4))
@@ -267,9 +290,13 @@ def build_dataloaders(
         augment_dihedral=False,
         seed=seed,
     )
-    val_ds = ManifestQuartetDataset(m_data, split="validation", smoke_limit=2 if mode == "train_smoke" else None)
+    val_ds = ManifestQuartetDataset(
+        m_data, split="validation", smoke_limit=2 if mode == "train_smoke" else None
+    )
     diag_ds = ManifestQuartetDataset(m_data, split="diagnostic")
-    test_ds = ManifestQuartetDataset(m_data, split="test", smoke_limit=2 if mode == "train_smoke" else None)
+    test_ds = ManifestQuartetDataset(
+        m_data, split="test", smoke_limit=2 if mode == "train_smoke" else None
+    )
 
     return {
         "train": DataLoader(
@@ -321,10 +348,12 @@ def forward_physics_loss(
 
         phase_eff = ste_quantize(phase_f32) if use_ste_quantize else phase_f32
         recon_amp = fresnel_reconstruct(phase_eff)
-        recon_01 = normalize_reconstructions(recon_amp, norm=DEFAULT_NORM, compare=DEFAULT_COMPARE)
+        recon_01 = normalize_reconstructions(
+            recon_amp, norm=DEFAULT_NORM, compare=DEFAULT_COMPARE
+        )
 
-        p_per_plane = pearson_torch(recon_01, targets_f32)       # [B, 4]
-        s_per_plane = ssim_global_torch(recon_01, targets_f32)   # [B, 4]
+        p_per_plane = pearson_torch(recon_01, targets_f32)  # [B, 4]
+        s_per_plane = ssim_global_torch(recon_01, targets_f32)  # [B, 4]
 
         p_mean = p_per_plane.mean()
         s_mean = s_per_plane.mean()

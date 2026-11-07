@@ -51,6 +51,18 @@ def evaluate_loader(
     total_selection = 0.0
     total_worst_pearson = 0.0
     total_worst_ssim = 0.0
+    fidelity_totals = {
+        key: 0.0
+        for key in (
+            "foreground_error",
+            "background_error",
+            "background_energy",
+            "foreign_energy",
+            "power_error",
+            "edge_error",
+            "multiscale_error",
+        )
+    }
     total_samples = 0
 
     for targets, _ in loader:
@@ -58,6 +70,10 @@ def evaluate_loader(
         targets = targets.to(device, non_blocking=True)
         pred_phase = model(targets)
         _, _, metrics = compute_sota_physics_loss(pred_phase, targets)
+        if any(not torch.isfinite(value).all() for value in metrics.values()):
+            raise FloatingPointError(
+                "Неконечная метрика на validation; checkpoint не сохраняется"
+            )
 
         total_loss += float(metrics["loss"].item()) * bsz
         total_pearson += float(metrics["pearson"].item()) * bsz
@@ -68,6 +84,8 @@ def evaluate_loader(
         total_selection += float(metrics["selection_error"].item()) * bsz
         total_worst_pearson += float(metrics["worst_pearson"].item()) * bsz
         total_worst_ssim += float(metrics["worst_ssim_local"].item()) * bsz
+        for key in fidelity_totals:
+            fidelity_totals[key] += float(metrics[key]) * bsz
         total_samples += bsz
 
     if total_samples == 0:
@@ -84,6 +102,7 @@ def evaluate_loader(
         "worst_pearson": total_worst_pearson / denom,
         "worst_ssim_skimage": total_worst_ssim / denom,
         "score": -total_selection / denom,
+        **{key: value / denom for key, value in fidelity_totals.items()},
     }
 
 
@@ -134,6 +153,40 @@ def export_split_with_optional_polish(
     return saved
 
 
+def initialize_training_model(
+    unroll_steps: int,
+    base_dim: int,
+    seed: int,
+    init_checkpoint: str | Path | None = None,
+) -> HoloUnrollNet:
+    """Загружает веса для дообучения; состояния Adam и scheduler создаются заново."""
+    payload = None
+    if init_checkpoint is not None:
+        payload = torch.load(init_checkpoint, map_location="cpu", weights_only=True)
+        if not isinstance(payload, dict) or "state_dict" not in payload:
+            raise ValueError(
+                "Для дообучения нужен checkpoint с метаданными и state_dict"
+            )
+        if (
+            payload.get("unroll_steps") != unroll_steps
+            or payload.get("base_dim") != base_dim
+        ):
+            raise ValueError(
+                "unroll_steps/base_dim должны совпадать с исходным checkpoint"
+            )
+    model = HoloUnrollNet(
+        unroll_steps=unroll_steps,
+        base_dim=base_dim,
+        equalize_plane_power=payload.get("equalize_plane_power", False)
+        if payload
+        else True,
+        phase_carrier_seed=payload.get("phase_carrier_seed") if payload else seed,
+    )
+    if payload:
+        model.load_state_dict(payload["state_dict"], strict=True)
+    return model
+
+
 def train_model(
     manifest_path: str | Path = DEFAULT_MANIFEST,
     checkpoint_out: str | Path = "checkpoints/best_model.pt",
@@ -147,11 +200,22 @@ def train_model(
     polish_export_steps: int = 25,
     seed: int = 3701,
     precision: str = "fp32",
+    init_checkpoint: str | Path | None = None,
+    lr_schedule: str = "onecycle",
 ) -> Path:
     if epochs < 1 or batch_size < 1 or lr <= 0 or polish_export_steps < 0:
         raise ValueError("epochs и batch_size >= 1, lr > 0, polish_export_steps >= 0")
     if precision not in ("fp32", "amp"):
         raise ValueError("precision: fp32 | amp")
+    if lr_schedule not in ("onecycle", "plateau"):
+        raise ValueError("lr_schedule: onecycle | plateau")
+    if (
+        init_checkpoint is not None
+        and Path(init_checkpoint).resolve() == Path(checkpoint_out).resolve()
+    ):
+        raise ValueError(
+            "Для дообучения задайте новый выходной checkpoint, сохранив исходный"
+        )
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -166,8 +230,6 @@ def train_model(
         torch.backends.cudnn.benchmark = True
 
     manifest_p = Path(manifest_path)
-    if not manifest_p.is_file() and Path("data/manifest.json").is_file():
-        manifest_p = Path("data/manifest.json")
 
     nw = 4 if device.type == "cuda" else 0
     loaders = build_dataloaders(
@@ -180,17 +242,23 @@ def train_model(
         seed=seed,
     )
 
-    model = HoloUnrollNet(
-        unroll_steps=unroll_steps, base_dim=base_dim, phase_carrier_seed=seed
-    ).to(device)
+    model = initialize_training_model(unroll_steps, base_dim, seed, init_checkpoint).to(
+        device
+    )
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer,
-        max_lr=lr,
-        epochs=epochs,
-        steps_per_epoch=len(loaders["train"]),
-        pct_start=0.15,
-        anneal_strategy="cos",
+    scheduler = (
+        torch.optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=lr,
+            epochs=epochs,
+            steps_per_epoch=len(loaders["train"]),
+            pct_start=0.15,
+            anneal_strategy="cos",
+        )
+        if lr_schedule == "onecycle"
+        else torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.5, patience=2, min_lr=min(lr, 1e-6)
+        )
     )
 
     use_amp = device.type == "cuda" and precision == "amp"
@@ -207,6 +275,8 @@ def train_model(
     )
 
     initial_metrics = evaluate_loader(model, loaders["validation"], device)
+    if lr_schedule == "plateau":
+        scheduler.step(initial_metrics["selection_error"])
     (ckpt_path.parent / "initial_validation.json").write_text(
         json.dumps(initial_metrics, indent=2), encoding="utf-8"
     )
@@ -235,11 +305,15 @@ def train_model(
                 "equalize_plane_power": model.equalize_plane_power,
                 "phase_carrier_seed": model.phase_carrier_seed,
                 "training_revision": "stable-carrier-v3",
-                "selection_revision": "visual-worst-plane-v1",
+                "selection_revision": "metrics-spatial-worst-plane-v4",
                 "worst_plane_weight": WORST_PLANE_WEIGHT,
                 "precision": precision,
+                "lr_schedule": lr_schedule,
+                "init_checkpoint": str(init_checkpoint)
+                if init_checkpoint is not None
+                else None,
                 "initial_validation": initial_metrics,
-                "checkpoint_criterion": "mean visual error + worst-plane shape penalty; SSIM breaks ties",
+                "checkpoint_criterion": "balanced-fidelity-v4 loss; local SSIM breaks ties",
                 "quantization": "uint8-ste",
                 "state_dict": state,
             },
@@ -307,7 +381,8 @@ def train_model(
             scaler.step(optimizer)
             scaler.update()
             if scaler.get_scale() >= previous_scale:
-                scheduler.step()
+                if lr_schedule == "onecycle":
+                    scheduler.step()
                 updates += 1
             else:
                 skipped += 1
@@ -324,10 +399,21 @@ def train_model(
                 "Оптимизатор не выполнил ни одного обновления за эпоху. Используйте --precision fp32."
             )
         val_metrics = evaluate_loader(model, loaders["validation"], device)
+        metric_guard = (
+            val_metrics["pearson"] >= initial_metrics["pearson"]
+            and val_metrics["ssim_skimage"] >= initial_metrics["ssim_skimage"]
+        )
+        if lr_schedule == "plateau":
+            monitor = val_metrics["selection_error"]
+            if not metric_guard:
+                monitor = max(initial_metrics["selection_error"], monitor)
+            scheduler.step(monitor)
         dt = time.perf_counter() - t0
 
         row = {
             "epoch": epoch,
+            "metric_guard_passed": metric_guard,
+            "lr": optimizer.param_groups[0]["lr"],
             "train_loss": train_loss_sum / seen,
             "train_pearson": train_p_sum / seen,
             "train_ssim": train_s_sum / seen,
@@ -343,6 +429,18 @@ def train_model(
             "val_selection_error": val_metrics["selection_error"],
             "val_worst_pearson": val_metrics["worst_pearson"],
             "val_worst_ssim_skimage": val_metrics["worst_ssim_skimage"],
+            **{
+                f"val_{key}": val_metrics[key]
+                for key in (
+                    "foreground_error",
+                    "background_error",
+                    "background_energy",
+                    "foreign_energy",
+                    "power_error",
+                    "edge_error",
+                    "multiscale_error",
+                )
+            },
             "optimizer_updates": updates,
             "amp_skipped": skipped,
             "amp_scale": scaler.get_scale(),
@@ -359,7 +457,10 @@ def train_model(
             json.dumps(history, indent=2, ensure_ascii=False), encoding="utf-8"
         )
 
-        is_best = (val_metrics["score"], val_metrics["ssim_skimage"]) > (
+        is_best = metric_guard and (
+            val_metrics["score"],
+            val_metrics["ssim_skimage"],
+        ) > (
             best_score,
             best_ssim,
         )
@@ -380,7 +481,10 @@ def train_model(
             f"Val P: {val_metrics['pearson']:.4f} SSIM global: {val_metrics['ssim_global']:.4f} "
             f"SSIM skimage: {val_metrics['ssim_skimage']:.4f} "
             f"Shape: {val_metrics['shape_error']:.4f} Visual: {val_metrics['visual_error']:.4f} | "
+            f"Select: {val_metrics['selection_error']:.4f} "
+            f"BG: {val_metrics['background_error']:.4f} Ghost: {val_metrics['foreign_energy']:.4f} "
             f"Worst P: {val_metrics['worst_pearson']:.4f} "
+            f"LR: {row['lr']:.2g} Guard: {'OK' if metric_guard else 'FAIL'} "
             f"Updates: {updates}/{len(loaders['train'])} AMP skipped: {skipped} "
             f"Gain: {row['visual_gain_from_initial']:+.4f}",
             flush=True,
@@ -399,7 +503,8 @@ def train_model(
     )
     if best_epoch == 0:
         print(
-            "Обучение не улучшило начальную модель по критерию выбора; сохранён epoch=0."
+            "Нет допустимого улучшения начальной модели по метрикам и критерию выбора; "
+            "сохранён epoch=0 текущего запуска."
         )
     print("Экспорт предсказаний в preds/val и preds/diag...")
     export_split_with_optional_polish(
@@ -451,6 +556,12 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=3701)
     parser.add_argument("--precision", choices=["fp32", "amp"], default="fp32")
     parser.add_argument(
+        "--lr-schedule", choices=["onecycle", "plateau"], default="onecycle"
+    )
+    parser.add_argument(
+        "--init-checkpoint", help="Начальные веса для дообучения с новым оптимизатором"
+    )
+    parser.add_argument(
         "--polish-steps",
         type=int,
         default=25,
@@ -471,6 +582,8 @@ def main() -> None:
         polish_export_steps=args.polish_steps,
         seed=args.seed,
         precision=args.precision,
+        init_checkpoint=args.init_checkpoint,
+        lr_schedule=args.lr_schedule,
     )
 
 

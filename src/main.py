@@ -101,7 +101,10 @@ def synthesize_doe_and_reconstruct(
     if device.type == "cuda":
         torch.cuda.synchronize()
     t0 = time.perf_counter()
-    pred_phase_t = hybrid_infer_phase(model, targets_t, polish_steps=polish_steps)
+    timings: dict[str, float] = {}
+    pred_phase_t = hybrid_infer_phase(
+        model, targets_t, polish_steps=polish_steps, timings=timings
+    )
     if device.type == "cuda":
         torch.cuda.synchronize()
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
@@ -134,6 +137,10 @@ def synthesize_doe_and_reconstruct(
             "device": str(device),
             "polish_steps": polish_steps,
             "inference_ms": round(elapsed_ms, 2),
+            **{key: round(value, 2) for key, value in timings.items()},
+            "synthesis_method": "network+phase_refinement"
+            if polish_steps
+            else "network",
             "norm": DEFAULT_NORM,
             "compare": DEFAULT_COMPARE,
             **metrics_report,
@@ -278,6 +285,12 @@ def main() -> None:
     p_tr.add_argument("--smoke", action="store_true")
     p_tr.add_argument("--seed", type=int, default=3701)
     p_tr.add_argument("--precision", choices=["fp32", "amp"], default="fp32")
+    p_tr.add_argument(
+        "--lr-schedule", choices=["onecycle", "plateau"], default="onecycle"
+    )
+    p_tr.add_argument(
+        "--init-checkpoint", help="Начальные веса для дообучения с новым оптимизатором"
+    )
     p_tr.set_defaults(
         func=lambda a: train_model(
             manifest_path=a.manifest,
@@ -292,6 +305,8 @@ def main() -> None:
             polish_export_steps=a.polish_steps,
             seed=a.seed,
             precision=a.precision,
+            init_checkpoint=a.init_checkpoint,
+            lr_schedule=a.lr_schedule,
         )
     )
 

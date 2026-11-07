@@ -121,7 +121,10 @@ def merge(base: Path, archive: Path, out: Path) -> dict:
                 "distances_mm": distances,
                 "seed": 0,
                 "generator_version": "exchange-v1",
-                "params": {"exchange": record},
+                "params": {
+                    "exchange": record,
+                    "preserve_plane_order": record["kind"] == "A",
+                },
             }
         )
     report = {

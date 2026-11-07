@@ -236,3 +236,15 @@ def test_real_anya_dataset_if_present() -> None:
     assert d.report.counts["validation"] == 100
     assert d.report.counts["test"] == 100
     assert d.report.warnings == []
+
+
+def test_simulated_exchange_quartets_keep_plane_order(mock_anya_dataset: Path) -> None:
+    raw = json.loads(mock_anya_dataset.read_text())
+    for record in raw['samples']:
+        if record['split'] == 'train':
+            record['params'] = {'exchange': {'kind': 'A'}}
+    mock_anya_dataset.write_text(json.dumps(raw))
+    plain = ManifestQuartetDataset(mock_anya_dataset, split='train')
+    shuffled = ManifestQuartetDataset(mock_anya_dataset, split='train', augment_channel_shuffle=True)
+    for _ in range(12):
+        torch.testing.assert_close(shuffled[0][0], plain[0][0])
