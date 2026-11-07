@@ -307,3 +307,42 @@ def test_depth_confusion_penalizes_swapped_images_and_allows_identical_targets()
     assert torch.isfinite(swapped.grad).all() and swapped.grad.abs().sum() > 0
     same = targets[:, :1].expand(-1, 4, -1, -1)
     assert plane_crosstalk_error_torch(same, same).max() < 1e-8
+
+
+def test_stable_phase_initialization_handles_zero_encoder_outputs():
+    torch.manual_seed(3701)
+    model = HoloUnrollNet(unroll_steps=1, base_dim=8, phase_carrier_seed=3701)
+    with torch.no_grad():
+        model.target_phase_init[-1].weight.zero_()
+        model.target_phase_init[-1].bias.zero_()
+    targets = torch.from_numpy(generate_synthetic_targets()).unsqueeze(0)
+    phase = model(targets)
+    loss, _, _ = compute_sota_physics_loss(phase, targets)
+    loss.backward()
+    assert all(
+        torch.isfinite(p.grad).all() for p in model.parameters() if p.grad is not None
+    )
+    assert torch.isfinite(phase).all()
+    assert model.target_phase_init[-1].weight.grad.abs().sum() > 0
+    assert "phase_carrier" not in model.state_dict()
+
+
+def test_carrier_seed_roundtrips_without_changing_legacy_state_format(tmp_path):
+    torch.manual_seed(77)
+    model = HoloUnrollNet(unroll_steps=1, base_dim=8, phase_carrier_seed=123)
+    path = tmp_path / "stable.pt"
+    torch.save(
+        {
+            "state_dict": model.state_dict(),
+            "unroll_steps": 1,
+            "base_dim": 8,
+            "equalize_plane_power": True,
+            "phase_carrier_seed": 123,
+        },
+        path,
+    )
+    restored, _, _ = load_trained_holonet(path, "cpu")
+    torch.testing.assert_close(restored.phase_carrier, model.phase_carrier)
+    target = torch.from_numpy(generate_synthetic_targets()).unsqueeze(0)
+    with torch.no_grad():
+        torch.testing.assert_close(model(target), restored(target))

@@ -244,6 +244,7 @@ class HoloUnrollNet(nn.Module):
         unroll_steps: int = 8,
         base_dim: int = 56,
         equalize_plane_power: bool = True,
+        phase_carrier_seed: int | None = None,
     ) -> None:
         super().__init__()
         if unroll_steps < 1 or base_dim < 8 or base_dim % 8:
@@ -253,6 +254,11 @@ class HoloUnrollNet(nn.Module):
         self.unroll_steps = unroll_steps
         self.base_dim = base_dim
         self.equalize_plane_power = equalize_plane_power
+        self.phase_carrier_seed = phase_carrier_seed
+        if phase_carrier_seed is not None:
+            generator = torch.Generator().manual_seed(phase_carrier_seed)
+            carrier = (2 * torch.rand(4, N, N, generator=generator) - 1) * torch.pi
+            self.register_buffer("phase_carrier", carrier, persistent=False)
 
         # 1. Инициализация гладкой фазы на 4 целевых плоскостях
         self.target_phase_init = nn.Sequential(
@@ -297,7 +303,17 @@ class HoloUnrollNet(nn.Module):
 
         # Шаг 1: Предсказание начальной фазы в плоскостях z1..z4 и перенос в z=0
         init_raw = self.target_phase_init(targets).view(bsz, 4, 2, N, N)
-        init_angle = torch.atan2(init_raw[:, :, 1].float(), init_raw[:, :, 0].float())
+        if self.phase_carrier_seed is None:
+            init_angle = torch.atan2(
+                init_raw[:, :, 1].float(), init_raw[:, :, 0].float()
+            )
+        else:
+            # atan2 двух близких к нулю выходов CNN даёт неограниченный градиент.
+            # Фиксированная фаза распределяет поле по апертуре, CNN учит поправку.
+            correction = (init_raw[:, :, 1].float() - init_raw[:, :, 0].float()) / (
+                2.0**0.5
+            )
+            init_angle = self.phase_carrier + 0.25 * torch.tanh(correction)
 
         with torch.amp.autocast("cuda", enabled=False):
             targets_f32 = targets.float()
@@ -385,6 +401,9 @@ class HoloUnrollNet(nn.Module):
         ).to(targets.dtype)
 
         ref_delta = self.refiner(refiner_in).float()
+        if self.phase_carrier_seed is not None:
+            # Радиус поправки <= sqrt(2)/2 < 1: итоговый фазор не обнуляется.
+            ref_delta = torch.tanh(ref_delta)
         final_re = cos_p + 0.5 * ref_delta[:, 0]
         final_im = sin_p + 0.5 * ref_delta[:, 1]
         return torch.atan2(final_im, final_re)

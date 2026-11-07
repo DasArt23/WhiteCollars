@@ -50,6 +50,7 @@ def load_trained_holonet(
     unroll_steps = 6
     base_dim = 48
     equalize_plane_power = False  # Старые checkpoint сохраняют прежний forward.
+    phase_carrier_seed = None
     state_dict = None
 
     if not ckpt_p.is_file():
@@ -62,6 +63,7 @@ def load_trained_holonet(
             unroll_steps = int(payload.get("unroll_steps", 6))
             base_dim = int(payload.get("base_dim", 48))
             equalize_plane_power = bool(payload.get("equalize_plane_power", False))
+            phase_carrier_seed = payload.get("phase_carrier_seed")
             state_dict = payload["state_dict"]
             meta["loaded"] = True
             meta["epoch"] = payload.get("epoch")
@@ -74,6 +76,7 @@ def load_trained_holonet(
         unroll_steps=unroll_steps,
         base_dim=base_dim,
         equalize_plane_power=equalize_plane_power,
+        phase_carrier_seed=phase_carrier_seed,
     ).to(device)
     if state_dict is not None:
         model.load_state_dict(state_dict, strict=True)
@@ -274,6 +277,7 @@ def main() -> None:
     p_tr.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     p_tr.add_argument("--smoke", action="store_true")
     p_tr.add_argument("--seed", type=int, default=3701)
+    p_tr.add_argument("--precision", choices=["fp32", "amp"], default="fp32")
     p_tr.set_defaults(
         func=lambda a: train_model(
             manifest_path=a.manifest,
@@ -287,6 +291,7 @@ def main() -> None:
             device_str=a.device,
             polish_export_steps=a.polish_steps,
             seed=a.seed,
+            precision=a.precision,
         )
     )
 

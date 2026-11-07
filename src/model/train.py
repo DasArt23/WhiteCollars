@@ -136,9 +136,12 @@ def train_model(
     device_str: str = "auto",
     polish_export_steps: int = 25,
     seed: int = 3701,
+    precision: str = "fp32",
 ) -> Path:
     if epochs < 1 or batch_size < 1 or lr <= 0 or polish_export_steps < 0:
         raise ValueError("epochs и batch_size >= 1, lr > 0, polish_export_steps >= 0")
+    if precision not in ("fp32", "amp"):
+        raise ValueError("precision: fp32 | amp")
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -167,7 +170,9 @@ def train_model(
         seed=seed,
     )
 
-    model = HoloUnrollNet(unroll_steps=unroll_steps, base_dim=base_dim).to(device)
+    model = HoloUnrollNet(
+        unroll_steps=unroll_steps, base_dim=base_dim, phase_carrier_seed=seed
+    ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
@@ -178,7 +183,7 @@ def train_model(
         anneal_strategy="cos",
     )
 
-    use_amp = device.type == "cuda"
+    use_amp = device.type == "cuda" and precision == "amp"
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     ckpt_path = Path(checkpoint_out)
@@ -187,7 +192,20 @@ def train_model(
     print(
         f"[HoloUnrollNet] Device: {device} "
         f"({torch.cuda.get_device_name(0) if device.type == 'cuda' else 'CPU'}) | "
-        f"Mode: {mode} | Unroll: {unroll_steps} | BaseDim: {base_dim}",
+        f"Mode: {mode} | Unroll: {unroll_steps} | BaseDim: {base_dim} | Precision: {precision}",
+        flush=True,
+    )
+
+    initial_metrics = evaluate_loader(model, loaders["validation"], device)
+    (ckpt_path.parent / "initial_validation.json").write_text(
+        json.dumps(initial_metrics, indent=2), encoding="utf-8"
+    )
+    save_validation_previews(
+        model, loaders["validation"], device, ckpt_path.parent / "initial_previews"
+    )
+    print(
+        f"Initial | P: {initial_metrics['pearson']:.4f} "
+        f"SSIM: {initial_metrics['ssim_skimage']:.4f} Visual: {initial_metrics['visual_error']:.4f}",
         flush=True,
     )
 
@@ -205,6 +223,10 @@ def train_model(
         train_local_sum = 0.0
         train_shape_sum = 0.0
         seen = 0
+        updates = 0
+        skipped = 0
+        grad_norm_sum = 0.0
+        nonfinite_grad_batches = 0
 
         for targets, _ in loaders["train"]:
             bsz = targets.shape[0]
@@ -219,12 +241,33 @@ def train_model(
                 raise FloatingPointError(f"Неконечный loss на эпохе {epoch}")
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            # Инициализатор не должен подавлять градиенты всех последующих блоков.
+            initial_norm = torch.nn.utils.clip_grad_norm_(
+                model.target_phase_init.parameters(),
+                max_norm=1.0,
+                error_if_nonfinite=not use_amp,
+            )
+            remaining = [
+                p
+                for n, p in model.named_parameters()
+                if not n.startswith("target_phase_init.")
+            ]
+            rest_norm = torch.nn.utils.clip_grad_norm_(
+                remaining, max_norm=1.0, error_if_nonfinite=not use_amp
+            )
+            grad_norm = torch.sqrt(initial_norm.square() + rest_norm.square())
+            if torch.isfinite(grad_norm):
+                grad_norm_sum += float(grad_norm.item())
+            else:
+                nonfinite_grad_batches += 1
             previous_scale = scaler.get_scale()
             scaler.step(optimizer)
             scaler.update()
             if scaler.get_scale() >= previous_scale:
                 scheduler.step()
+                updates += 1
+            else:
+                skipped += 1
 
             train_loss_sum += float(metrics["loss"].item()) * bsz
             train_p_sum += float(metrics["pearson"].item()) * bsz
@@ -233,6 +276,10 @@ def train_model(
             train_shape_sum += float(metrics["shape_error"].item()) * bsz
             seen += bsz
 
+        if updates == 0:
+            raise FloatingPointError(
+                "Оптимизатор не выполнил ни одного обновления за эпоху. Используйте --precision fp32."
+            )
         val_metrics = evaluate_loader(model, loaders["validation"], device)
         dt = time.perf_counter() - t0
 
@@ -250,6 +297,14 @@ def train_model(
             "val_score": val_metrics["score"],
             "val_shape_error": val_metrics["shape_error"],
             "val_visual_error": val_metrics["visual_error"],
+            "optimizer_updates": updates,
+            "amp_skipped": skipped,
+            "amp_scale": scaler.get_scale(),
+            "grad_norm_mean": grad_norm_sum
+            / max(1, len(loaders["train"]) - nonfinite_grad_batches),
+            "nonfinite_grad_batches": nonfinite_grad_batches,
+            "visual_gain_from_initial": initial_metrics["visual_error"]
+            - val_metrics["visual_error"],
             "time_sec": round(dt, 2),
         }
         history.append(row)
@@ -280,6 +335,10 @@ def train_model(
                     "metric_weights": METRIC_WEIGHTS,
                     "loss_version": LOSS_VERSION,
                     "equalize_plane_power": model.equalize_plane_power,
+                    "phase_carrier_seed": model.phase_carrier_seed,
+                    "training_revision": "stable-carrier-v3",
+                    "precision": precision,
+                    "initial_validation": initial_metrics,
                     "checkpoint_criterion": "minimum shape/foreground/crosstalk error; SSIM breaks ties",
                     "quantization": "uint8-ste",
                     "state_dict": best_state,
@@ -297,7 +356,9 @@ def train_model(
             f"SSIM skimage: {row['train_ssim_skimage']:.4f} | "
             f"Val P: {val_metrics['pearson']:.4f} SSIM global: {val_metrics['ssim_global']:.4f} "
             f"SSIM skimage: {val_metrics['ssim_skimage']:.4f} "
-            f"Shape: {val_metrics['shape_error']:.4f} Visual: {val_metrics['visual_error']:.4f}",
+            f"Shape: {val_metrics['shape_error']:.4f} Visual: {val_metrics['visual_error']:.4f} | "
+            f"Updates: {updates}/{len(loaders['train'])} AMP skipped: {skipped} "
+            f"Gain: {row['visual_gain_from_initial']:+.4f}",
             flush=True,
         )
 
@@ -359,6 +420,7 @@ def main() -> None:
         "--smoke", action="store_true", help="Быстрый тест на 8 примерах (train_smoke)"
     )
     parser.add_argument("--seed", type=int, default=3701)
+    parser.add_argument("--precision", choices=["fp32", "amp"], default="fp32")
     parser.add_argument(
         "--polish-steps",
         type=int,
@@ -379,6 +441,7 @@ def main() -> None:
         device_str=args.device,
         polish_export_steps=args.polish_steps,
         seed=args.seed,
+        precision=args.precision,
     )
 
 
