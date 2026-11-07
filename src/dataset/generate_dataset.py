@@ -271,7 +271,7 @@ def generate(out, ntrain, nval, ntest, master_seed):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=Path('data'))
-    parser.add_argument('--train', type=int, default=200)
+    parser.add_argument('--train', type=int, default=1000)
     parser.add_argument('--validation', type=int, default=100)
     parser.add_argument('--test', type=int, default=100)
     parser.add_argument('--seed', type=int, default=3701)
