@@ -1,0 +1,1451 @@
+{
+  "scope": "first N TRAIN quartets per group; fixed before running; no test scores used",
+  "warning": "Small exploratory GS experiment, no trained network and no generalization claim. Groups are different tasks.",
+  "protocol": {
+    "method": "existing_multiplane_GS",
+    "iterations": 60,
+    "seed": 42,
+    "device": "CPU",
+    "threads": 2,
+    "phase": "uint8 [-pi,pi]",
+    "target": "amplitude PNG/255",
+    "reconstruction": "per-plane max; uint8 round-trip",
+    "ssim_global": "existing doe_eval.metrics.ssim_global, K1=.01 K2=.03 population moments",
+    "ssim_windowed": "existing doe_eval.metrics.ssim_skimage default 7x7, data_range=1",
+    "timing": "single exploratory mask wall time, not a latency benchmark"
+  },
+  "groups": {
+    "old": {
+      "quartets": 12,
+      "mean": {
+        "pearson": 0.5266732876602147,
+        "ssim_global": 0.35665420413533017,
+        "ssim_windowed": 0.10455614929151164
+      },
+      "results": [
+        {
+          "sample_id": "train_000001",
+          "mask_seconds": 0.06635058400570415,
+          "planes": [
+            {
+              "pearson": 0.28740260177787996,
+              "ssim_global": 0.18145934528519903,
+              "ssim_windowed": 0.07403353072396988
+            },
+            {
+              "pearson": 0.7770443942118423,
+              "ssim_global": 0.6352103698222265,
+              "ssim_windowed": 0.07449843824326002
+            },
+            {
+              "pearson": 0.36655215035219585,
+              "ssim_global": 0.26335210933634623,
+              "ssim_windowed": 0.1209728248289681
+            },
+            {
+              "pearson": 0.5947314646112598,
+              "ssim_global": 0.2723770322036844,
+              "ssim_windowed": 0.10061658365648832
+            }
+          ],
+          "pearson": 0.5064326527382945,
+          "ssim_global": 0.3380997141618641,
+          "ssim_windowed": 0.09253034436317159
+        },
+        {
+          "sample_id": "train_000002",
+          "mask_seconds": 0.06124679200001992,
+          "planes": [
+            {
+              "pearson": 0.2470649270224976,
+              "ssim_global": 0.14308239862229108,
+              "ssim_windowed": 0.09377333590605719
+            },
+            {
+              "pearson": 0.4977034145751603,
+              "ssim_global": 0.4072192879310831,
+              "ssim_windowed": 0.10207841295322144
+            },
+            {
+              "pearson": 0.7425399787105593,
+              "ssim_global": 0.5145633300413988,
+              "ssim_windowed": 0.11628667638412868
+            },
+            {
+              "pearson": 0.5140814907405018,
+              "ssim_global": 0.20341594697300466,
+              "ssim_windowed": 0.0689548653334881
+            }
+          ],
+          "pearson": 0.5003474527621798,
+          "ssim_global": 0.31707024089194435,
+          "ssim_windowed": 0.09527332264422385
+        },
+        {
+          "sample_id": "train_000003",
+          "mask_seconds": 0.0598110419959994,
+          "planes": [
+            {
+              "pearson": 0.3010273872811043,
+              "ssim_global": 0.21057767574850228,
+              "ssim_windowed": 0.11283952520512305
+            },
+            {
+              "pearson": 0.6839928675436246,
+              "ssim_global": 0.45159861128330603,
+              "ssim_windowed": 0.10937155748421834
+            },
+            {
+              "pearson": 0.27192515636221104,
+              "ssim_global": 0.17615893325056545,
+              "ssim_windowed": 0.0858716010772474
+            },
+            {
+              "pearson": 0.754423445634938,
+              "ssim_global": 0.6068093168595744,
+              "ssim_windowed": 0.06803539308642802
+            }
+          ],
+          "pearson": 0.5028422142054695,
+          "ssim_global": 0.36128613428548706,
+          "ssim_windowed": 0.0940295192132542
+        },
+        {
+          "sample_id": "train_000004",
+          "mask_seconds": 0.06186574998719152,
+          "planes": [
+            {
+              "pearson": 0.5038128145783265,
+              "ssim_global": 0.40190173212404573,
+              "ssim_windowed": 0.07441126082758533
+            },
+            {
+              "pearson": 0.44643608807214186,
+              "ssim_global": 0.24638580470757626,
+              "ssim_windowed": 0.09282201849869243
+            },
+            {
+              "pearson": 0.3718252643279597,
+              "ssim_global": 0.08795691179381407,
+              "ssim_windowed": 0.05620992981607239
+            },
+            {
+              "pearson": 0.7204967291894876,
+              "ssim_global": 0.2852873528867484,
+              "ssim_windowed": 0.13033784658932676
+            }
+          ],
+          "pearson": 0.510642724041979,
+          "ssim_global": 0.2553829503780461,
+          "ssim_windowed": 0.08844526393291922
+        },
+        {
+          "sample_id": "train_000005",
+          "mask_seconds": 0.058598792005795985,
+          "planes": [
+            {
+              "pearson": 0.30431486865914403,
+              "ssim_global": 0.18697050271425772,
+              "ssim_windowed": 0.08476992363353658
+            },
+            {
+              "pearson": 0.6878245584403467,
+              "ssim_global": 0.5334253015529977,
+              "ssim_windowed": 0.07987703930101572
+            },
+            {
+              "pearson": 0.41252956287029435,
+              "ssim_global": 0.3016220788901618,
+              "ssim_windowed": 0.10791332019088544
+            },
+            {
+              "pearson": 0.5164670273847377,
+              "ssim_global": 0.3258977855887784,
+              "ssim_windowed": 0.08444618123643559
+            }
+          ],
+          "pearson": 0.4802840043386307,
+          "ssim_global": 0.33697891718654893,
+          "ssim_windowed": 0.08925161609046833
+        },
+        {
+          "sample_id": "train_000006",
+          "mask_seconds": 0.06381324998801574,
+          "planes": [
+            {
+              "pearson": 0.7535716244628144,
+              "ssim_global": 0.5737907085739111,
+              "ssim_windowed": 0.07880684526596028
+            },
+            {
+              "pearson": 0.8554049497012103,
+              "ssim_global": 0.7033726906053853,
+              "ssim_windowed": 0.1089876294506202
+            },
+            {
+              "pearson": 0.28030192010303123,
+              "ssim_global": 0.12024781573719133,
+              "ssim_windowed": 0.05548838709020517
+            },
+            {
+              "pearson": 0.22695193082387147,
+              "ssim_global": 0.15697214333931,
+              "ssim_windowed": 0.06803362224066152
+            }
+          ],
+          "pearson": 0.5290576062727319,
+          "ssim_global": 0.3885958395639495,
+          "ssim_windowed": 0.07782912101186179
+        },
+        {
+          "sample_id": "train_000007",
+          "mask_seconds": 0.06315891700796783,
+          "planes": [
+            {
+              "pearson": 0.8009336563977838,
+              "ssim_global": 0.5582688897414942,
+              "ssim_windowed": 0.09153862773142979
+            },
+            {
+              "pearson": 0.6056887132084557,
+              "ssim_global": 0.4608743389846811,
+              "ssim_windowed": 0.08515094058153246
+            },
+            {
+              "pearson": 0.29267783081563564,
+              "ssim_global": 0.19025352347769756,
+              "ssim_windowed": 0.18624029490648275
+            },
+            {
+              "pearson": 0.6583189194244844,
+              "ssim_global": 0.4623211537456927,
+              "ssim_windowed": 0.15387159949991921
+            }
+          ],
+          "pearson": 0.5894047799615899,
+          "ssim_global": 0.4179294764873914,
+          "ssim_windowed": 0.12920036567984106
+        },
+        {
+          "sample_id": "train_000008",
+          "mask_seconds": 0.05748437499278225,
+          "planes": [
+            {
+              "pearson": 0.6368638022687482,
+              "ssim_global": 0.41315379150938353,
+              "ssim_windowed": 0.10829001091863696
+            },
+            {
+              "pearson": 0.8630523413437929,
+              "ssim_global": 0.5425457763775235,
+              "ssim_windowed": 0.1350389856597761
+            },
+            {
+              "pearson": 0.5957100229378293,
+              "ssim_global": 0.4735495485838947,
+              "ssim_windowed": 0.15451702934828523
+            },
+            {
+              "pearson": 0.3401672192674795,
+              "ssim_global": 0.24243453844656293,
+              "ssim_windowed": 0.14721782117161517
+            }
+          ],
+          "pearson": 0.6089483464544625,
+          "ssim_global": 0.4179209137293412,
+          "ssim_windowed": 0.13626596177457836
+        },
+        {
+          "sample_id": "train_000009",
+          "mask_seconds": 0.05742133299645502,
+          "planes": [
+            {
+              "pearson": 0.6532888028327976,
+              "ssim_global": 0.4806830376905491,
+              "ssim_windowed": 0.08609429195177903
+            },
+            {
+              "pearson": 0.2589423233944697,
+              "ssim_global": 0.1576290054760043,
+              "ssim_windowed": 0.09697538724562245
+            },
+            {
+              "pearson": 0.24869830163668774,
+              "ssim_global": 0.12518133977659707,
+              "ssim_windowed": 0.11032506718721972
+            },
+            {
+              "pearson": 0.8801691615558143,
+              "ssim_global": 0.6792318092766236,
+              "ssim_windowed": 0.14115980854810697
+            }
+          ],
+          "pearson": 0.5102746473549423,
+          "ssim_global": 0.36068129805494353,
+          "ssim_windowed": 0.10863863873318205
+        },
+        {
+          "sample_id": "train_000010",
+          "mask_seconds": 0.06212741699710023,
+          "planes": [
+            {
+              "pearson": 0.6846637655754895,
+              "ssim_global": 0.5009569972011685,
+              "ssim_windowed": 0.09399187464618373
+            },
+            {
+              "pearson": 0.5589746687137733,
+              "ssim_global": 0.3788082052437626,
+              "ssim_windowed": 0.15103900326736258
+            },
+            {
+              "pearson": 0.34867334140635997,
+              "ssim_global": 0.2502347139435051,
+              "ssim_windowed": 0.1465291207944463
+            },
+            {
+              "pearson": 0.35710552898899467,
+              "ssim_global": 0.15932044510588034,
+              "ssim_windowed": 0.1060363445381259
+            }
+          ],
+          "pearson": 0.4873543261711544,
+          "ssim_global": 0.3223300903735791,
+          "ssim_windowed": 0.12439908581152963
+        },
+        {
+          "sample_id": "train_000011",
+          "mask_seconds": 0.058014124995679595,
+          "planes": [
+            {
+              "pearson": 0.8096394366885995,
+              "ssim_global": 0.6215018266093406,
+              "ssim_windowed": 0.07687876990747171
+            },
+            {
+              "pearson": 0.7525315989921153,
+              "ssim_global": 0.5143881981894379,
+              "ssim_windowed": 0.11645205061389778
+            },
+            {
+              "pearson": 0.29216394117028655,
+              "ssim_global": 0.21645257516496524,
+              "ssim_windowed": 0.1301181916236191
+            },
+            {
+              "pearson": 0.6283889391527251,
+              "ssim_global": 0.38306247886697925,
+              "ssim_windowed": 0.10912567799204834
+            }
+          ],
+          "pearson": 0.6206809790009316,
+          "ssim_global": 0.43385126970768073,
+          "ssim_windowed": 0.10814367253425922
+        },
+        {
+          "sample_id": "train_000012",
+          "mask_seconds": 0.0598302909929771,
+          "planes": [
+            {
+              "pearson": 0.3666977497854822,
+              "ssim_global": 0.19591014203890153,
+              "ssim_windowed": 0.09638924018927554
+            },
+            {
+              "pearson": 0.6236258896795646,
+              "ssim_global": 0.4419387422554154,
+              "ssim_windowed": 0.10950858958383347
+            },
+            {
+              "pearson": 0.1364355125058549,
+              "ssim_global": 0.08419771866289703,
+              "ssim_windowed": 0.13909372784152566
+            },
+            {
+              "pearson": 0.7684797225099413,
+              "ssim_global": 0.5968478162555304,
+              "ssim_windowed": 0.09767596122076574
+            }
+          ],
+          "pearson": 0.47380971862021076,
+          "ssim_global": 0.3297236048031861,
+          "ssim_windowed": 0.11066687970885009
+        }
+      ]
+    },
+    "old_blur2": {
+      "quartets": 12,
+      "mean": {
+        "pearson": 0.5245134393011514,
+        "ssim_global": 0.3807919150241677,
+        "ssim_windowed": 0.12436420493816462
+      },
+      "results": [
+        {
+          "sample_id": "train_000001",
+          "mask_seconds": 0.06201541700283997,
+          "planes": [
+            {
+              "pearson": 0.24467436918016122,
+              "ssim_global": 0.1892856944321501,
+              "ssim_windowed": 0.13893786143890802
+            },
+            {
+              "pearson": 0.7885880770812764,
+              "ssim_global": 0.6615733263818301,
+              "ssim_windowed": 0.09578655474730498
+            },
+            {
+              "pearson": 0.33773807364147734,
+              "ssim_global": 0.28175068708086703,
+              "ssim_windowed": 0.1346702821570425
+            },
+            {
+              "pearson": 0.6190939541220104,
+              "ssim_global": 0.3556864770915445,
+              "ssim_windowed": 0.11423623659309634
+            }
+          ],
+          "pearson": 0.49752361850623134,
+          "ssim_global": 0.3720740462465979,
+          "ssim_windowed": 0.12090773373408795
+        },
+        {
+          "sample_id": "train_000002",
+          "mask_seconds": 0.05904529200051911,
+          "planes": [
+            {
+              "pearson": 0.2677936387716668,
+              "ssim_global": 0.1755078537037621,
+              "ssim_windowed": 0.09326224567564916
+            },
+            {
+              "pearson": 0.49004482802167443,
+              "ssim_global": 0.4134972481933902,
+              "ssim_windowed": 0.11061403389309724
+            },
+            {
+              "pearson": 0.7488709926590985,
+              "ssim_global": 0.6102890378889473,
+              "ssim_windowed": 0.11520659111018576
+            },
+            {
+              "pearson": 0.48957126874925977,
+              "ssim_global": 0.17366060279604917,
+              "ssim_windowed": 0.06535110826666854
+            }
+          ],
+          "pearson": 0.49907018205042486,
+          "ssim_global": 0.3432386856455372,
+          "ssim_windowed": 0.09610849473640018
+        },
+        {
+          "sample_id": "train_000003",
+          "mask_seconds": 0.059407584005384706,
+          "planes": [
+            {
+              "pearson": 0.2762211343124573,
+              "ssim_global": 0.22880958546193914,
+              "ssim_windowed": 0.1362145091306147
+            },
+            {
+              "pearson": 0.6745248660192842,
+              "ssim_global": 0.4382124649691622,
+              "ssim_windowed": 0.1432127141974928
+            },
+            {
+              "pearson": 0.26097857165643523,
+              "ssim_global": 0.202847925845007,
+              "ssim_windowed": 0.1308007331584048
+            },
+            {
+              "pearson": 0.7614553810914836,
+              "ssim_global": 0.5659974525070016,
+              "ssim_windowed": 0.10457541634330411
+            }
+          ],
+          "pearson": 0.493294988269915,
+          "ssim_global": 0.3589668571957775,
+          "ssim_windowed": 0.1287008432074541
+        },
+        {
+          "sample_id": "train_000004",
+          "mask_seconds": 0.0632616670045536,
+          "planes": [
+            {
+              "pearson": 0.5233443823514365,
+              "ssim_global": 0.4265177929042594,
+              "ssim_windowed": 0.08757922859802328
+            },
+            {
+              "pearson": 0.48618555807656655,
+              "ssim_global": 0.31437269795034317,
+              "ssim_windowed": 0.09746110484239115
+            },
+            {
+              "pearson": 0.4197928981697982,
+              "ssim_global": 0.14027310808410967,
+              "ssim_windowed": 0.06847575304649864
+            },
+            {
+              "pearson": 0.6876672728912655,
+              "ssim_global": 0.22567004631366233,
+              "ssim_windowed": 0.17327031424503742
+            }
+          ],
+          "pearson": 0.5292475278722667,
+          "ssim_global": 0.27670841131309365,
+          "ssim_windowed": 0.10669660018298761
+        },
+        {
+          "sample_id": "train_000005",
+          "mask_seconds": 0.0591833329963265,
+          "planes": [
+            {
+              "pearson": 0.28159903597520103,
+              "ssim_global": 0.21279400287407435,
+              "ssim_windowed": 0.10713517120732506
+            },
+            {
+              "pearson": 0.684153744289546,
+              "ssim_global": 0.5291701193712176,
+              "ssim_windowed": 0.1056762769813257
+            },
+            {
+              "pearson": 0.4224893172827672,
+              "ssim_global": 0.320727109444133,
+              "ssim_windowed": 0.13021339532097603
+            },
+            {
+              "pearson": 0.49869303358071915,
+              "ssim_global": 0.3138071358910952,
+              "ssim_windowed": 0.09120019651283684
+            }
+          ],
+          "pearson": 0.4717337827820583,
+          "ssim_global": 0.34412459189513006,
+          "ssim_windowed": 0.10855626000561591
+        },
+        {
+          "sample_id": "train_000006",
+          "mask_seconds": 0.060208916998817585,
+          "planes": [
+            {
+              "pearson": 0.7603804258818782,
+              "ssim_global": 0.6088781034524866,
+              "ssim_windowed": 0.09403966061057265
+            },
+            {
+              "pearson": 0.8574406707824752,
+              "ssim_global": 0.7208562083923175,
+              "ssim_windowed": 0.14159558194336386
+            },
+            {
+              "pearson": 0.24076359669207992,
+              "ssim_global": 0.11367738404725958,
+              "ssim_windowed": 0.07400198124048725
+            },
+            {
+              "pearson": 0.23015669663433833,
+              "ssim_global": 0.17397242298728763,
+              "ssim_windowed": 0.0791828645742436
+            }
+          ],
+          "pearson": 0.5221853474976929,
+          "ssim_global": 0.4043460297198378,
+          "ssim_windowed": 0.09720502209216685
+        },
+        {
+          "sample_id": "train_000007",
+          "mask_seconds": 0.05915912499767728,
+          "planes": [
+            {
+              "pearson": 0.8135863302852437,
+              "ssim_global": 0.5968512995503047,
+              "ssim_windowed": 0.11512130468080048
+            },
+            {
+              "pearson": 0.5926891867694203,
+              "ssim_global": 0.47652087377849134,
+              "ssim_windowed": 0.10837722817502518
+            },
+            {
+              "pearson": 0.27887670849546276,
+              "ssim_global": 0.2199722629817906,
+              "ssim_windowed": 0.22718335673731285
+            },
+            {
+              "pearson": 0.6611210198085596,
+              "ssim_global": 0.5240844418763464,
+              "ssim_windowed": 0.20172609512121406
+            }
+          ],
+          "pearson": 0.5865683113396716,
+          "ssim_global": 0.45435721954673325,
+          "ssim_windowed": 0.16310199617858814
+        },
+        {
+          "sample_id": "train_000008",
+          "mask_seconds": 0.06084550000377931,
+          "planes": [
+            {
+              "pearson": 0.6499790038235739,
+              "ssim_global": 0.44964578551648643,
+              "ssim_windowed": 0.13385526372650333
+            },
+            {
+              "pearson": 0.8724956932227802,
+              "ssim_global": 0.6212728746206616,
+              "ssim_windowed": 0.15555505854961568
+            },
+            {
+              "pearson": 0.6208411652557995,
+              "ssim_global": 0.5358728512875733,
+              "ssim_windowed": 0.12275335024980046
+            },
+            {
+              "pearson": 0.2920265148336362,
+              "ssim_global": 0.246777881203609,
+              "ssim_windowed": 0.17168914625697285
+            }
+          ],
+          "pearson": 0.6088355942839474,
+          "ssim_global": 0.46339234815708263,
+          "ssim_windowed": 0.14596320469572308
+        },
+        {
+          "sample_id": "train_000009",
+          "mask_seconds": 0.057620999999926426,
+          "planes": [
+            {
+              "pearson": 0.6474294968343627,
+              "ssim_global": 0.5129737191117778,
+              "ssim_windowed": 0.12134318063783772
+            },
+            {
+              "pearson": 0.22243436069340927,
+              "ssim_global": 0.14576633534212866,
+              "ssim_windowed": 0.11251287200441382
+            },
+            {
+              "pearson": 0.3090130592920949,
+              "ssim_global": 0.1989708921248078,
+              "ssim_windowed": 0.13859512333475169
+            },
+            {
+              "pearson": 0.868474471958042,
+              "ssim_global": 0.7512111088329141,
+              "ssim_windowed": 0.17897340351108357
+            }
+          ],
+          "pearson": 0.5118378471944772,
+          "ssim_global": 0.4022305138529071,
+          "ssim_windowed": 0.1378561448720217
+        },
+        {
+          "sample_id": "train_000010",
+          "mask_seconds": 0.05832475000352133,
+          "planes": [
+            {
+              "pearson": 0.6720277399960523,
+              "ssim_global": 0.4845754734001251,
+              "ssim_windowed": 0.11695773974173332
+            },
+            {
+              "pearson": 0.5506999901765263,
+              "ssim_global": 0.40398419445547656,
+              "ssim_windowed": 0.1555569792848561
+            },
+            {
+              "pearson": 0.360040260115892,
+              "ssim_global": 0.26856706925921087,
+              "ssim_windowed": 0.1264634186512649
+            },
+            {
+              "pearson": 0.36297838610043626,
+              "ssim_global": 0.17356069921945091,
+              "ssim_windowed": 0.10186807739872789
+            }
+          ],
+          "pearson": 0.4864365940972267,
+          "ssim_global": 0.33267185908356584,
+          "ssim_windowed": 0.12521155376914556
+        },
+        {
+          "sample_id": "train_000011",
+          "mask_seconds": 0.05693966700346209,
+          "planes": [
+            {
+              "pearson": 0.8169033536190926,
+              "ssim_global": 0.5814431189688928,
+              "ssim_windowed": 0.10902125445123453
+            },
+            {
+              "pearson": 0.7611591003324599,
+              "ssim_global": 0.6342299471793537,
+              "ssim_windowed": 0.12421110222308482
+            },
+            {
+              "pearson": 0.25113525287775224,
+              "ssim_global": 0.21272169481250175,
+              "ssim_windowed": 0.15125043179316175
+            },
+            {
+              "pearson": 0.6461597264195934,
+              "ssim_global": 0.4675192082325924,
+              "ssim_windowed": 0.1323519566163383
+            }
+          ],
+          "pearson": 0.6188393583122245,
+          "ssim_global": 0.4739784922983351,
+          "ssim_windowed": 0.12920868627095483
+        },
+        {
+          "sample_id": "train_000012",
+          "mask_seconds": 0.061368541995761916,
+          "planes": [
+            {
+              "pearson": 0.369691649703486,
+              "ssim_global": 0.23164282529277905,
+              "ssim_windowed": 0.12545329523713566
+            },
+            {
+              "pearson": 0.6006882773297031,
+              "ssim_global": 0.4197587603821049,
+              "ssim_windowed": 0.1534421655754303
+            },
+            {
+              "pearson": 0.13980560400147946,
+              "ssim_global": 0.0824758532069429,
+              "ssim_windowed": 0.13144126310002358
+            },
+            {
+              "pearson": 0.7641669465960503,
+              "ssim_global": 0.6397782624598297,
+              "ssim_windowed": 0.121078954138728
+            }
+          ],
+          "pearson": 0.46858811940767975,
+          "ssim_global": 0.34341392533541415,
+          "ssim_windowed": 0.1328539195128294
+        }
+      ]
+    },
+    "soft_independent": {
+      "quartets": 12,
+      "mean": {
+        "pearson": 0.718670129378328,
+        "ssim_global": 0.5490667034750866,
+        "ssim_windowed": 0.10323389419518085
+      },
+      "results": [
+        {
+          "sample_id": "soft1_train_000002",
+          "mask_seconds": 0.05932525001117028,
+          "planes": [
+            {
+              "pearson": 0.7898773180339377,
+              "ssim_global": 0.7031388685965336,
+              "ssim_windowed": 0.10534239207452087
+            },
+            {
+              "pearson": 0.8820289696588809,
+              "ssim_global": 0.5876227851580806,
+              "ssim_windowed": 0.12815413473832749
+            },
+            {
+              "pearson": 0.43323182067595695,
+              "ssim_global": 0.34953951958700374,
+              "ssim_windowed": 0.07789768015569273
+            },
+            {
+              "pearson": 0.6931144428864117,
+              "ssim_global": 0.5081476706010789,
+              "ssim_windowed": 0.10672045110950629
+            }
+          ],
+          "pearson": 0.6995631378137968,
+          "ssim_global": 0.5371122109856742,
+          "ssim_windowed": 0.10452866451951184
+        },
+        {
+          "sample_id": "soft1_train_000003",
+          "mask_seconds": 0.05814687500242144,
+          "planes": [
+            {
+              "pearson": 0.6660228213850848,
+              "ssim_global": 0.4703063407030239,
+              "ssim_windowed": 0.12908480060921304
+            },
+            {
+              "pearson": 0.7523565453833432,
+              "ssim_global": 0.46187884238225646,
+              "ssim_windowed": 0.14543873921498932
+            },
+            {
+              "pearson": 0.750059117210878,
+              "ssim_global": 0.6452742465636125,
+              "ssim_windowed": 0.10061684893229884
+            },
+            {
+              "pearson": 0.725050636977705,
+              "ssim_global": 0.6387611131468637,
+              "ssim_windowed": 0.09963958013004127
+            }
+          ],
+          "pearson": 0.7233722802392528,
+          "ssim_global": 0.5540551356989392,
+          "ssim_windowed": 0.11869499222163561
+        },
+        {
+          "sample_id": "soft1_train_000005",
+          "mask_seconds": 0.057808291996479966,
+          "planes": [
+            {
+              "pearson": 0.8063711773873654,
+              "ssim_global": 0.6954649708477647,
+              "ssim_windowed": 0.10086342265557426
+            },
+            {
+              "pearson": 0.7465659994090147,
+              "ssim_global": 0.644276278504844,
+              "ssim_windowed": 0.09052331392166738
+            },
+            {
+              "pearson": 0.6374059291600006,
+              "ssim_global": 0.4858503345600174,
+              "ssim_windowed": 0.10823087820061905
+            },
+            {
+              "pearson": 0.7939511654490173,
+              "ssim_global": 0.6623479450256027,
+              "ssim_windowed": 0.12973155279676093
+            }
+          ],
+          "pearson": 0.7460735678513496,
+          "ssim_global": 0.6219848822345573,
+          "ssim_windowed": 0.1073372918936554
+        },
+        {
+          "sample_id": "soft1_train_000006",
+          "mask_seconds": 0.06145966700569261,
+          "planes": [
+            {
+              "pearson": 0.7106064710524357,
+              "ssim_global": 0.5676010848184518,
+              "ssim_windowed": 0.1094494435209745
+            },
+            {
+              "pearson": 0.554179071575085,
+              "ssim_global": 0.4833336908304462,
+              "ssim_windowed": 0.09782287306682855
+            },
+            {
+              "pearson": 0.8560363277584447,
+              "ssim_global": 0.5111862737342704,
+              "ssim_windowed": 0.14923218144347666
+            },
+            {
+              "pearson": 0.8194446336074869,
+              "ssim_global": 0.7163586075286539,
+              "ssim_windowed": 0.10289795443804005
+            }
+          ],
+          "pearson": 0.735066625998363,
+          "ssim_global": 0.5696199142279557,
+          "ssim_windowed": 0.11485061311732994
+        },
+        {
+          "sample_id": "soft1_train_000008",
+          "mask_seconds": 0.05822987499414012,
+          "planes": [
+            {
+              "pearson": 0.8316858455108628,
+              "ssim_global": 0.7049193171917992,
+              "ssim_windowed": 0.09549186933819889
+            },
+            {
+              "pearson": 0.5353580422823455,
+              "ssim_global": 0.40488034993407435,
+              "ssim_windowed": 0.08386444094990432
+            },
+            {
+              "pearson": 0.7585451560558933,
+              "ssim_global": 0.6708141100252174,
+              "ssim_windowed": 0.0900391633020892
+            },
+            {
+              "pearson": 0.7066109653714403,
+              "ssim_global": 0.6408794186987918,
+              "ssim_windowed": 0.14504651365594928
+            }
+          ],
+          "pearson": 0.7080500023051355,
+          "ssim_global": 0.6053732989624707,
+          "ssim_windowed": 0.10361049681153543
+        },
+        {
+          "sample_id": "soft1_train_000010",
+          "mask_seconds": 0.061542959010694176,
+          "planes": [
+            {
+              "pearson": 0.8520741736472662,
+              "ssim_global": 0.6213844081847538,
+              "ssim_windowed": 0.10305517173030619
+            },
+            {
+              "pearson": 0.7868649608391023,
+              "ssim_global": 0.6210642916744272,
+              "ssim_windowed": 0.075725376014228
+            },
+            {
+              "pearson": 0.845085416543901,
+              "ssim_global": 0.3593021760402365,
+              "ssim_windowed": 0.10656517137947764
+            },
+            {
+              "pearson": 0.7542399824027156,
+              "ssim_global": 0.6521306508375428,
+              "ssim_windowed": 0.07730034392891297
+            }
+          ],
+          "pearson": 0.8095661333582462,
+          "ssim_global": 0.5634703816842401,
+          "ssim_windowed": 0.0906615157632312
+        },
+        {
+          "sample_id": "soft1_train_000012",
+          "mask_seconds": 0.06113283299782779,
+          "planes": [
+            {
+              "pearson": 0.722281269379808,
+              "ssim_global": 0.5902679851314592,
+              "ssim_windowed": 0.06888116732133968
+            },
+            {
+              "pearson": 0.7947933495845568,
+              "ssim_global": 0.46204084174195303,
+              "ssim_windowed": 0.09561312247486987
+            },
+            {
+              "pearson": 0.5743605037760986,
+              "ssim_global": 0.4172139752159305,
+              "ssim_windowed": 0.08650440906954904
+            },
+            {
+              "pearson": 0.7436412517873862,
+              "ssim_global": 0.4656763948603543,
+              "ssim_windowed": 0.11849088943308139
+            }
+          ],
+          "pearson": 0.7087690936319624,
+          "ssim_global": 0.4837997992374242,
+          "ssim_windowed": 0.09237239707471
+        },
+        {
+          "sample_id": "soft1_train_000014",
+          "mask_seconds": 0.061978458004887216,
+          "planes": [
+            {
+              "pearson": 0.8612636803440071,
+              "ssim_global": 0.5383281065088802,
+              "ssim_windowed": 0.11142783847872102
+            },
+            {
+              "pearson": 0.6257513430687275,
+              "ssim_global": 0.552040522660602,
+              "ssim_windowed": 0.08679328690986256
+            },
+            {
+              "pearson": 0.7102401731227808,
+              "ssim_global": 0.599547902833231,
+              "ssim_windowed": 0.08638094350746124
+            },
+            {
+              "pearson": 0.7006719229151636,
+              "ssim_global": 0.6112679317330196,
+              "ssim_windowed": 0.13658748271573998
+            }
+          ],
+          "pearson": 0.7244817798626697,
+          "ssim_global": 0.5752961159339331,
+          "ssim_windowed": 0.10529738790294621
+        },
+        {
+          "sample_id": "soft1_train_000015",
+          "mask_seconds": 0.0609004160069162,
+          "planes": [
+            {
+              "pearson": 0.7595835983188534,
+              "ssim_global": 0.540131583130652,
+              "ssim_windowed": 0.09021649768276893
+            },
+            {
+              "pearson": 0.7229014139090415,
+              "ssim_global": 0.6277560469694463,
+              "ssim_windowed": 0.09137598409615164
+            },
+            {
+              "pearson": 0.6048839780763983,
+              "ssim_global": 0.3820874200969361,
+              "ssim_windowed": 0.07961320856448012
+            },
+            {
+              "pearson": 0.8127336943373024,
+              "ssim_global": 0.6112182806029091,
+              "ssim_windowed": 0.11030369272881879
+            }
+          ],
+          "pearson": 0.7250256711603988,
+          "ssim_global": 0.5402983326999858,
+          "ssim_windowed": 0.09287734576805487
+        },
+        {
+          "sample_id": "soft1_train_000016",
+          "mask_seconds": 0.06134691700572148,
+          "planes": [
+            {
+              "pearson": 0.8219673429727663,
+              "ssim_global": 0.5699793166031232,
+              "ssim_windowed": 0.11283028696039411
+            },
+            {
+              "pearson": 0.730056664724282,
+              "ssim_global": 0.521781457333462,
+              "ssim_windowed": 0.09742871582324672
+            },
+            {
+              "pearson": 0.40799884526525265,
+              "ssim_global": 0.3636878856367532,
+              "ssim_windowed": 0.09640496896147818
+            },
+            {
+              "pearson": 0.668341292466126,
+              "ssim_global": 0.5802043631879756,
+              "ssim_windowed": 0.09012662550504352
+            }
+          ],
+          "pearson": 0.6570910363571066,
+          "ssim_global": 0.5089132556903285,
+          "ssim_windowed": 0.09919764931254064
+        },
+        {
+          "sample_id": "soft1_train_000017",
+          "mask_seconds": 0.05803025000204798,
+          "planes": [
+            {
+              "pearson": 0.7665754821496664,
+              "ssim_global": 0.645539839920027,
+              "ssim_windowed": 0.110128094043638
+            },
+            {
+              "pearson": 0.700141741854304,
+              "ssim_global": 0.6064230094407375,
+              "ssim_windowed": 0.09030297648728418
+            },
+            {
+              "pearson": 0.5520803083374286,
+              "ssim_global": 0.37400116371368697,
+              "ssim_windowed": 0.13467037912895824
+            },
+            {
+              "pearson": 0.8008761017288163,
+              "ssim_global": 0.6270063843261221,
+              "ssim_windowed": 0.12863155152501762
+            }
+          ],
+          "pearson": 0.7049184085175538,
+          "ssim_global": 0.5632425993501434,
+          "ssim_windowed": 0.1159332502962245
+        },
+        {
+          "sample_id": "soft1_train_000018",
+          "mask_seconds": 0.060331000000587665,
+          "planes": [
+            {
+              "pearson": 0.790869391705046,
+              "ssim_global": 0.4349641481552755,
+              "ssim_windowed": 0.10687025017339781
+            },
+            {
+              "pearson": 0.45326429535073776,
+              "ssim_global": 0.3337270785378137,
+              "ssim_windowed": 0.08960941104392534
+            },
+            {
+              "pearson": 0.7984034878868526,
+              "ssim_global": 0.526816010525565,
+              "ssim_windowed": 0.07802326756211965
+            },
+            {
+              "pearson": 0.6857180868337647,
+              "ssim_global": 0.5670308227628886,
+              "ssim_windowed": 0.09927757386373465
+            }
+          ],
+          "pearson": 0.6820638154441002,
+          "ssim_global": 0.4656345149953857,
+          "ssim_windowed": 0.09344512566079435
+        }
+      ]
+    },
+    "physical_forward": {
+      "quartets": 12,
+      "mean": {
+        "pearson": 0.9117888962628465,
+        "ssim_global": 0.9021186651008248,
+        "ssim_windowed": 0.588891133765267
+      },
+      "results": [
+        {
+          "sample_id": "soft1_train_000001",
+          "mask_seconds": 0.06268287499551661,
+          "planes": [
+            {
+              "pearson": 0.9014837140050427,
+              "ssim_global": 0.8971808534582296,
+              "ssim_windowed": 0.5640488466170103
+            },
+            {
+              "pearson": 0.9018364832874939,
+              "ssim_global": 0.8843213977616567,
+              "ssim_windowed": 0.5454338310492858
+            },
+            {
+              "pearson": 0.9129385593785156,
+              "ssim_global": 0.9077118473761754,
+              "ssim_windowed": 0.5906109073310726
+            },
+            {
+              "pearson": 0.9200152798157311,
+              "ssim_global": 0.9166792104112635,
+              "ssim_windowed": 0.5702674034493397
+            }
+          ],
+          "pearson": 0.9090685091216959,
+          "ssim_global": 0.9014733272518314,
+          "ssim_windowed": 0.567590247111677
+        },
+        {
+          "sample_id": "soft1_train_000004",
+          "mask_seconds": 0.0637880409922218,
+          "planes": [
+            {
+              "pearson": 0.9043369791304426,
+              "ssim_global": 0.8924900797306771,
+              "ssim_windowed": 0.5545249267552719
+            },
+            {
+              "pearson": 0.8964384121582557,
+              "ssim_global": 0.8515654846155278,
+              "ssim_windowed": 0.5536184706316962
+            },
+            {
+              "pearson": 0.8992979242196616,
+              "ssim_global": 0.8822672773306732,
+              "ssim_windowed": 0.5771245200333724
+            },
+            {
+              "pearson": 0.9271533472525334,
+              "ssim_global": 0.9224278136298055,
+              "ssim_windowed": 0.5946865457577708
+            }
+          ],
+          "pearson": 0.9068066656902234,
+          "ssim_global": 0.8871876638266709,
+          "ssim_windowed": 0.5699886157945279
+        },
+        {
+          "sample_id": "soft1_train_000007",
+          "mask_seconds": 0.05851704199449159,
+          "planes": [
+            {
+              "pearson": 0.9077937778347623,
+              "ssim_global": 0.9048337688886299,
+              "ssim_windowed": 0.5423692565854281
+            },
+            {
+              "pearson": 0.908955895347142,
+              "ssim_global": 0.9008195130409576,
+              "ssim_windowed": 0.5981932579041129
+            },
+            {
+              "pearson": 0.917605204747704,
+              "ssim_global": 0.9124275166977859,
+              "ssim_windowed": 0.5853651117235315
+            },
+            {
+              "pearson": 0.9047713290296778,
+              "ssim_global": 0.8932331425488084,
+              "ssim_windowed": 0.5627394947547745
+            }
+          ],
+          "pearson": 0.9097815517398216,
+          "ssim_global": 0.9028284852940455,
+          "ssim_windowed": 0.5721667802419618
+        },
+        {
+          "sample_id": "soft1_train_000009",
+          "mask_seconds": 0.060111792001407593,
+          "planes": [
+            {
+              "pearson": 0.8942154522832454,
+              "ssim_global": 0.8909664461008102,
+              "ssim_windowed": 0.575441340791256
+            },
+            {
+              "pearson": 0.9143483768412697,
+              "ssim_global": 0.9077228726596216,
+              "ssim_windowed": 0.5999958888524384
+            },
+            {
+              "pearson": 0.9257624422698878,
+              "ssim_global": 0.9186651812258121,
+              "ssim_windowed": 0.6113914823519849
+            },
+            {
+              "pearson": 0.8983414151260962,
+              "ssim_global": 0.892284343587218,
+              "ssim_windowed": 0.5916076733180234
+            }
+          ],
+          "pearson": 0.9081669216301249,
+          "ssim_global": 0.9024097108933654,
+          "ssim_windowed": 0.5946090963284256
+        },
+        {
+          "sample_id": "soft1_train_000011",
+          "mask_seconds": 0.059749082996859215,
+          "planes": [
+            {
+              "pearson": 0.9109724732472102,
+              "ssim_global": 0.9042760098454877,
+              "ssim_windowed": 0.575583230216097
+            },
+            {
+              "pearson": 0.9352054892997064,
+              "ssim_global": 0.9276494694882728,
+              "ssim_windowed": 0.6191366931575177
+            },
+            {
+              "pearson": 0.9100303396735446,
+              "ssim_global": 0.8923218931102966,
+              "ssim_windowed": 0.604347312870549
+            },
+            {
+              "pearson": 0.9008106062711945,
+              "ssim_global": 0.8964769019314274,
+              "ssim_windowed": 0.6190481886696203
+            }
+          ],
+          "pearson": 0.9142547271229139,
+          "ssim_global": 0.905181068593871,
+          "ssim_windowed": 0.604528856228446
+        },
+        {
+          "sample_id": "soft1_train_000013",
+          "mask_seconds": 0.05949683301150799,
+          "planes": [
+            {
+              "pearson": 0.903733147305925,
+              "ssim_global": 0.8962474971617375,
+              "ssim_windowed": 0.5905829555560093
+            },
+            {
+              "pearson": 0.8987476554463084,
+              "ssim_global": 0.8709495366211035,
+              "ssim_windowed": 0.5653859018149049
+            },
+            {
+              "pearson": 0.9183446359934222,
+              "ssim_global": 0.9127193858178074,
+              "ssim_windowed": 0.6471938337039721
+            },
+            {
+              "pearson": 0.9239958572582309,
+              "ssim_global": 0.9198122547999524,
+              "ssim_windowed": 0.6281446096863712
+            }
+          ],
+          "pearson": 0.9112053240009715,
+          "ssim_global": 0.8999321686001502,
+          "ssim_windowed": 0.6078268251903143
+        },
+        {
+          "sample_id": "soft1_train_000019",
+          "mask_seconds": 0.06235229100275319,
+          "planes": [
+            {
+              "pearson": 0.9024303704387434,
+              "ssim_global": 0.898944887372795,
+              "ssim_windowed": 0.5698954998989445
+            },
+            {
+              "pearson": 0.9027714529011225,
+              "ssim_global": 0.8730058324601208,
+              "ssim_windowed": 0.5394260031449465
+            },
+            {
+              "pearson": 0.9151992739432121,
+              "ssim_global": 0.9087295622373224,
+              "ssim_windowed": 0.5794026614860683
+            },
+            {
+              "pearson": 0.9275042504891212,
+              "ssim_global": 0.9236727514094064,
+              "ssim_windowed": 0.5687938913921154
+            }
+          ],
+          "pearson": 0.9119763369430498,
+          "ssim_global": 0.9010882583699111,
+          "ssim_windowed": 0.5643795139805187
+        },
+        {
+          "sample_id": "soft1_train_000020",
+          "mask_seconds": 0.06128575000911951,
+          "planes": [
+            {
+              "pearson": 0.8976689891382695,
+              "ssim_global": 0.893592951928752,
+              "ssim_windowed": 0.5749355375106917
+            },
+            {
+              "pearson": 0.9358041147391066,
+              "ssim_global": 0.9019607328557814,
+              "ssim_windowed": 0.6111039906189937
+            },
+            {
+              "pearson": 0.9249147820372676,
+              "ssim_global": 0.9203376287792123,
+              "ssim_windowed": 0.5947698809423407
+            },
+            {
+              "pearson": 0.9093316188933946,
+              "ssim_global": 0.8978818031481159,
+              "ssim_windowed": 0.5942109238639669
+            }
+          ],
+          "pearson": 0.9169298762020096,
+          "ssim_global": 0.9034432791779654,
+          "ssim_windowed": 0.5937550832339983
+        },
+        {
+          "sample_id": "soft1_train_000021",
+          "mask_seconds": 0.06206849998852704,
+          "planes": [
+            {
+              "pearson": 0.9080692702613763,
+              "ssim_global": 0.9058960081157689,
+              "ssim_windowed": 0.5254054144303284
+            },
+            {
+              "pearson": 0.9087153484240242,
+              "ssim_global": 0.900897681072549,
+              "ssim_windowed": 0.5983888394328302
+            },
+            {
+              "pearson": 0.9115102161335881,
+              "ssim_global": 0.8939604561197545,
+              "ssim_windowed": 0.580786022319101
+            },
+            {
+              "pearson": 0.917746856573607,
+              "ssim_global": 0.9112181682831657,
+              "ssim_windowed": 0.6022926514570843
+            }
+          ],
+          "pearson": 0.9115104228481489,
+          "ssim_global": 0.9029930783978095,
+          "ssim_windowed": 0.5767182319098361
+        },
+        {
+          "sample_id": "soft1_train_000024",
+          "mask_seconds": 0.05946899999980815,
+          "planes": [
+            {
+              "pearson": 0.8932300267226726,
+              "ssim_global": 0.889767856767729,
+              "ssim_windowed": 0.609613996359719
+            },
+            {
+              "pearson": 0.9136616019361596,
+              "ssim_global": 0.8879212037828461,
+              "ssim_windowed": 0.5248610741762373
+            },
+            {
+              "pearson": 0.9321858071327367,
+              "ssim_global": 0.9268801105637609,
+              "ssim_windowed": 0.6329732917832243
+            },
+            {
+              "pearson": 0.9415139429276488,
+              "ssim_global": 0.9362871519311167,
+              "ssim_windowed": 0.6237544735454547
+            }
+          ],
+          "pearson": 0.9201478446798045,
+          "ssim_global": 0.9102140807613631,
+          "ssim_windowed": 0.5978007089661588
+        },
+        {
+          "sample_id": "soft1_train_000027",
+          "mask_seconds": 0.060327083003357984,
+          "planes": [
+            {
+              "pearson": 0.8930335729386126,
+              "ssim_global": 0.8857417112017021,
+              "ssim_windowed": 0.5796308681740081
+            },
+            {
+              "pearson": 0.9117067002249348,
+              "ssim_global": 0.9075594200855135,
+              "ssim_windowed": 0.6250848969434846
+            },
+            {
+              "pearson": 0.9063698486103468,
+              "ssim_global": 0.9002858696236857,
+              "ssim_windowed": 0.6103247472911975
+            },
+            {
+              "pearson": 0.9234732573154358,
+              "ssim_global": 0.9144773116640929,
+              "ssim_windowed": 0.6261423362821659
+            }
+          ],
+          "pearson": 0.9086458447723325,
+          "ssim_global": 0.9020160781437486,
+          "ssim_windowed": 0.6102957121727139
+        },
+        {
+          "sample_id": "soft1_train_000028",
+          "mask_seconds": 0.060379999995348044,
+          "planes": [
+            {
+              "pearson": 0.9209038273811334,
+              "ssim_global": 0.912151675490668,
+              "ssim_windowed": 0.6102747154053092
+            },
+            {
+              "pearson": 0.9034911385828182,
+              "ssim_global": 0.9008347438030031,
+              "ssim_windowed": 0.5901024354071696
+            },
+            {
+              "pearson": 0.9127957314966149,
+              "ssim_global": 0.9056853313646754,
+              "ssim_windowed": 0.5945859705485693
+            },
+            {
+              "pearson": 0.9147002241516734,
+              "ssim_global": 0.9079553769383149,
+              "ssim_windowed": 0.6331726147374561
+            }
+          ],
+          "pearson": 0.91297273040306,
+          "ssim_global": 0.9066567818991653,
+          "ssim_windowed": 0.607033934024626
+        }
+      ]
+    }
+  }
+}

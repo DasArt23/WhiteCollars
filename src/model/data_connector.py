@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import json
 from collections import Counter
 from dataclasses import dataclass, field
-import json
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
-from PIL import Image, ImageStat
 import torch
+from PIL import Image, ImageStat
 from torch.utils.data import DataLoader, Dataset
 
 from doe_eval import (
@@ -60,7 +60,7 @@ class ManifestData:
         return [s for s in self.samples if s.split == split]
 
 
-def _validate_and_load_png(path: Path) -> np.ndarray:
+def _validate_and_load_png(path: Path, allow_physical_background: bool = False) -> np.ndarray:
     """Строгая загрузка целевого PNG 128x128, режим 'L', 8 бит -> float32 [0, 1]."""
     if not path.is_file():
         raise FileNotFoundError(f"Файл целевой картинки не найден: {path}")
@@ -72,7 +72,7 @@ def _validate_and_load_png(path: Path) -> np.ndarray:
         if im.size != (N, N):
             raise ValueError(f"{path}: ожидался размер ({N}, {N}), получен {im.size}")
         lo, hi = im.getextrema()
-        if lo != 0 or hi == 0:
+        if (lo != 0 and not allow_physical_background) or hi == 0:
             raise ValueError(f"{path}: нарушен контракт сигнала/фона (min={lo}, max={hi})")
         if ImageStat.Stat(im).stddev[0] <= 0:
             raise ValueError(f"{path}: нулевая дисперсия изображения")
@@ -132,7 +132,10 @@ def load_manifest(
             if str(rel).startswith("previews/"):
                 raise ValueError(f"{sid}: файлы из previews/ не должны входить в samples ({rel})")
             if verify_images:
-                _validate_and_load_png(root_dir / rel)
+                _validate_and_load_png(
+                    root_dir / rel,
+                    allow_physical_background=rec.get('params', {}).get('kind') == 'physical_forward',
+                )
 
         counts[split] += 1
         samples.append(
@@ -204,6 +207,13 @@ class ManifestQuartetDataset(Dataset):
             raise ValueError(f"Пустой список примеров для split='{split}'")
 
         self.samples = items
+        if (augment_channel_shuffle or augment_dihedral) and any(
+            s.params.get('kind') == 'physical_forward' for s in items
+        ):
+            raise ValueError(
+                'physical_forward: отключите аугментации каналов/геометрии; '
+                'они нарушают связь четырёх плоскостей с сохранённой фазой.'
+            )
         self.augment_channel_shuffle = augment_channel_shuffle
         self.augment_dihedral = augment_dihedral
         self.rng = np.random.default_rng(seed)
@@ -213,7 +223,10 @@ class ManifestQuartetDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, str]:
         record = self.samples[idx]
-        planes = [_validate_and_load_png(self.root_dir / rel) for rel in record.images]
+        planes = [_validate_and_load_png(
+            self.root_dir / rel,
+            allow_physical_background=record.params.get('kind') == 'physical_forward',
+        ) for rel in record.images]
         arr = np.stack(planes, axis=0)  # [4, 128, 128], float32 в [0, 1]
 
         if self.split == "train":

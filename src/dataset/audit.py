@@ -60,11 +60,12 @@ def inspect(manifest, reference=None, near=0.95):
                     if im.format != 'PNG' or im.mode != 'L' or im.size != (128, 128):
                         raise ValueError('Expected PNG L 128x128')
                     arr = np.asarray(im).copy()
-                    if arr.min() != 0 or arr.max() == 0 or arr.std() == 0:
+                    physical = s.get('params', {}).get('kind') == 'physical_forward'
+                    if (arr.min() != 0 and not physical) or arr.max() == 0 or arr.std() == 0:
                         raise ValueError('Missing foreground/background or constant image')
                     ys, xs = np.nonzero(arr > 2)
                     margin = int(min(xs.min(), ys.min(), 127-xs.max(), 127-ys.max()))
-                    if margin < 4:
+                    if margin < 4 and not physical:
                         errors.append(f'Signal too close to edge: {rel}')
                     digest = hashlib.sha256(arr.tobytes()).hexdigest()
                     if digest in hashes:

@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "identical_target_pngs": 3204,
+  "identical_reference_phase_pngs": 320,
+  "total_pngs_compared": 3524,
+  "note": "Full regeneration, byte-for-byte. Reference phases relocated out of target folders; compared by sample_id."
+}
