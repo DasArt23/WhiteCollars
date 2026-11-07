@@ -17,16 +17,18 @@ ROOT = Path(__file__).resolve().parent
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT.parent))
 
+from doe_eval.cli import evaluate_pair_arrays
 from doe_eval.config import DEFAULT_MANIFEST
-from doe_eval.io import save_doe_png
+from doe_eval.io import load_doe_png, save_comparison_png, save_doe_png
+from doe_eval.physics import fresnel_reconstruct, normalize_reconstructions
 from model.data_connector import (
     build_dataloaders,
     export_split_predictions,
 )
 from model.holonet import (
+    LOSS_VERSION,
     METRIC_WEIGHTS,
     HoloUnrollNet,
-    balanced_quality_score,
     compute_sota_physics_loss,
     hybrid_infer_phase,
 )
@@ -43,6 +45,8 @@ def evaluate_loader(
     total_pearson = 0.0
     total_ssim = 0.0
     total_local = 0.0
+    total_shape = 0.0
+    total_visual = 0.0
     total_samples = 0
 
     for targets, _ in loader:
@@ -55,6 +59,8 @@ def evaluate_loader(
         total_pearson += float(metrics["pearson"].item()) * bsz
         total_ssim += float(metrics["ssim_global"].item()) * bsz
         total_local += float(metrics["ssim_local"].item()) * bsz
+        total_shape += float(metrics["shape_error"].item()) * bsz
+        total_visual += float(metrics["visual_error"].item()) * bsz
         total_samples += bsz
 
     if total_samples == 0:
@@ -65,8 +71,32 @@ def evaluate_loader(
         "pearson": total_pearson / denom,
         "ssim_global": total_ssim / denom,
         "ssim_skimage": total_local / denom,
-        "score": balanced_quality_score(total_pearson / denom, total_local / denom),
+        "shape_error": total_shape / denom,
+        "visual_error": total_visual / denom,
+        "score": -total_visual / denom,
     }
+
+
+@torch.no_grad()
+def save_validation_previews(model, loader, device, directory: Path) -> None:
+    """Фиксированные примеры показывают потерю объектов, скрытую средним SSIM."""
+    indices = np.linspace(
+        0, len(loader.dataset) - 1, min(4, len(loader.dataset)), dtype=int
+    )
+    examples = [loader.dataset[int(i)] for i in indices]
+    targets = torch.stack([target for target, _ in examples]).to(device)
+    phases = model(targets).cpu().numpy()
+    for phase, (target, sid) in zip(phases, examples):
+        destination = directory / str(sid)
+        doe = destination / "doe.png"
+        save_doe_png(phase, doe)
+        restored = fresnel_reconstruct(torch.from_numpy(load_doe_png(doe)).to(device))
+        restored = normalize_reconstructions(restored).cpu().numpy()
+        save_comparison_png(target.numpy(), restored, destination / "comparison.png")
+        report = evaluate_pair_arrays(target.numpy(), restored)
+        (destination / "metrics.json").write_text(
+            json.dumps(report, indent=2), encoding="utf-8"
+        )
 
 
 def export_split_with_optional_polish(
@@ -115,9 +145,9 @@ def train_model(
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
     device = torch.device(
-        "cuda" if (device_str == "auto" and torch.cuda.is_available()) else (
-            "cpu" if device_str == "auto" else device_str
-        )
+        "cuda"
+        if (device_str == "auto" and torch.cuda.is_available())
+        else ("cpu" if device_str == "auto" else device_str)
     )
     if device.type == "cuda":
         torch.backends.cudnn.benchmark = True
@@ -161,7 +191,7 @@ def train_model(
         flush=True,
     )
 
-    best_score = -1.0
+    best_score = -float("inf")
     best_ssim = -1.0
     best_state = None
     history = []
@@ -172,6 +202,8 @@ def train_model(
         train_loss_sum = 0.0
         train_p_sum = 0.0
         train_s_sum = 0.0
+        train_local_sum = 0.0
+        train_shape_sum = 0.0
         seen = 0
 
         for targets, _ in loaders["train"]:
@@ -197,6 +229,8 @@ def train_model(
             train_loss_sum += float(metrics["loss"].item()) * bsz
             train_p_sum += float(metrics["pearson"].item()) * bsz
             train_s_sum += float(metrics["ssim_global"].item()) * bsz
+            train_local_sum += float(metrics["ssim_local"].item()) * bsz
+            train_shape_sum += float(metrics["shape_error"].item()) * bsz
             seen += bsz
 
         val_metrics = evaluate_loader(model, loaders["validation"], device)
@@ -207,16 +241,27 @@ def train_model(
             "train_loss": train_loss_sum / seen,
             "train_pearson": train_p_sum / seen,
             "train_ssim": train_s_sum / seen,
+            "train_ssim_skimage": train_local_sum / seen,
+            "train_shape_error": train_shape_sum / seen,
             "val_loss": val_metrics["loss"],
             "val_pearson": val_metrics["pearson"],
             "val_ssim_global": val_metrics["ssim_global"],
             "val_ssim_skimage": val_metrics["ssim_skimage"],
             "val_score": val_metrics["score"],
+            "val_shape_error": val_metrics["shape_error"],
+            "val_visual_error": val_metrics["visual_error"],
             "time_sec": round(dt, 2),
         }
         history.append(row)
+        # Прерывание больше не теряет журнал уже законченных эпох.
+        (ckpt_path.parent / "training_history.json").write_text(
+            json.dumps(history, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
-        is_best = (val_metrics["score"], val_metrics["ssim_skimage"]) > (best_score, best_ssim)
+        is_best = (val_metrics["score"], val_metrics["ssim_skimage"]) > (
+            best_score,
+            best_ssim,
+        )
         if is_best:
             best_score = val_metrics["score"]
             best_ssim = val_metrics["ssim_skimage"]
@@ -229,21 +274,30 @@ def train_model(
                     "epoch": epoch,
                     "val_metrics": val_metrics,
                     "seed": seed,
-                    "manifest_sha256": hashlib.sha256(manifest_p.read_bytes()).hexdigest(),
+                    "manifest_sha256": hashlib.sha256(
+                        manifest_p.read_bytes()
+                    ).hexdigest(),
                     "metric_weights": METRIC_WEIGHTS,
-                    "checkpoint_criterion": "harmonic_mean(positive_pearson, positive_ssim_skimage); SSIM breaks ties",
+                    "loss_version": LOSS_VERSION,
+                    "equalize_plane_power": model.equalize_plane_power,
+                    "checkpoint_criterion": "minimum shape/foreground/crosstalk error; SSIM breaks ties",
                     "quantization": "uint8-ste",
                     "state_dict": best_state,
                 },
                 ckpt_path,
             )
+            save_validation_previews(
+                model, loaders["validation"], device, ckpt_path.parent / "previews"
+            )
 
         mark = "*" if is_best else " "
         print(
             f"Epoch {epoch:03d}/{epochs:03d} [{dt:5.2f}s]{mark} | "
-            f"Train P: {row['train_pearson']:.4f} SSIM: {row['train_ssim']:.4f} | "
+            f"Train P: {row['train_pearson']:.4f} SSIM global: {row['train_ssim']:.4f} "
+            f"SSIM skimage: {row['train_ssim_skimage']:.4f} | "
             f"Val P: {val_metrics['pearson']:.4f} SSIM global: {val_metrics['ssim_global']:.4f} "
-            f"SSIM skimage: {val_metrics['ssim_skimage']:.4f}",
+            f"SSIM skimage: {val_metrics['ssim_skimage']:.4f} "
+            f"Shape: {val_metrics['shape_error']:.4f} Visual: {val_metrics['visual_error']:.4f}",
             flush=True,
         )
 
@@ -254,31 +308,63 @@ def train_model(
         json.dumps(history, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    print(f"\nСохранены лучшие веса модели: {ckpt_path} (Best Val Score: {best_score:.4f})")
+    print(
+        f"\nСохранены лучшие веса модели: {ckpt_path} (Best Val Visual Error: {-best_score:.4f}; меньше — лучше)"
+    )
     print("Экспорт предсказаний в preds/val и preds/diag...")
     export_split_with_optional_polish(
-        model, loaders["validation"], "preds/val", device, polish_steps=polish_export_steps
+        model,
+        loaders["validation"],
+        "preds/val",
+        device,
+        polish_steps=polish_export_steps,
     )
     export_split_with_optional_polish(
-        model, loaders["diagnostic"], "preds/diag", device, polish_steps=polish_export_steps
+        model,
+        loaders["diagnostic"],
+        "preds/diag",
+        device,
+        polish_steps=polish_export_steps,
     )
     print("Готово! Папки preds/val и preds/diag сформированы.")
     return ckpt_path
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Обучение HoloUnrollNet для синтеза ДОЭ")
-    parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST), help="Путь к manifest.json")
-    parser.add_argument("--checkpoint", default="checkpoints/best_model.pt", help="Куда сохранить веса")
+    parser = argparse.ArgumentParser(
+        description="Обучение HoloUnrollNet для синтеза ДОЭ"
+    )
+    parser.add_argument(
+        "--manifest", default=str(DEFAULT_MANIFEST), help="Путь к manifest.json"
+    )
+    parser.add_argument(
+        "--checkpoint", default="checkpoints/best_model.pt", help="Куда сохранить веса"
+    )
     parser.add_argument("--epochs", type=int, default=60, help="Число эпох обучения")
     parser.add_argument("--batch-size", type=int, default=16, help="Размер батча")
-    parser.add_argument("--lr", type=float, default=2e-3, help="Максимальный learning rate")
-    parser.add_argument("--unroll-steps", type=int, default=6, help="Число развёрнутых физических итераций")
-    parser.add_argument("--base-dim", type=int, default=48, help="Базовое число каналов Fourier U-Net")
+    parser.add_argument(
+        "--lr", type=float, default=2e-3, help="Максимальный learning rate"
+    )
+    parser.add_argument(
+        "--unroll-steps",
+        type=int,
+        default=6,
+        help="Число развёрнутых физических итераций",
+    )
+    parser.add_argument(
+        "--base-dim", type=int, default=48, help="Базовое число каналов Fourier U-Net"
+    )
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
-    parser.add_argument("--smoke", action="store_true", help="Быстрый тест на 8 примерах (train_smoke)")
+    parser.add_argument(
+        "--smoke", action="store_true", help="Быстрый тест на 8 примерах (train_smoke)"
+    )
     parser.add_argument("--seed", type=int, default=3701)
-    parser.add_argument("--polish-steps", type=int, default=25, help="Шаги финального дожима при экспорте PNG")
+    parser.add_argument(
+        "--polish-steps",
+        type=int,
+        default=25,
+        help="Шаги финального дожима при экспорте PNG",
+    )
     args = parser.parse_args()
 
     train_model(

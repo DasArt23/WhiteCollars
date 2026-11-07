@@ -8,7 +8,11 @@ from torch import nn
 
 from doe_eval import pearson_torch, ssim_global_torch
 from doe_eval.config import DISTANCES, PIXEL, WAVELENGTH, N
-from doe_eval.metrics import ssim_local_7x7_torch
+from doe_eval.metrics import (
+    amplitude_shape_error_torch,
+    plane_crosstalk_error_torch,
+    ssim_local_7x7_torch,
+)
 from doe_eval.physics import (
     fresnel_inverse_complex,
     fresnel_propagate_complex,
@@ -17,22 +21,9 @@ from doe_eval.physics import (
     ste_quantize,
 )
 
-# Экспериментальный критерий, а не утверждённая организаторами свёртка метрик.
-METRIC_WEIGHTS = (0.35, 0.25, 0.40)  # Pearson, global SSIM, local SSIM
-
-
-def balanced_quality_score(pearson, ssim):
-    """Внутренний критерий выбора, не метрика организаторов.
-
-    Гармоническое среднее штрафует высокий SSIM при плохой корреляции:
-    P=.1/S=.84 даёт .179, тогда как P=.566/S=.127 даёт .207.
-    Отрицательные метрики обнуляются только здесь, в отчётах остаются исходные.
-    """
-    if isinstance(pearson, torch.Tensor):
-        p, s = pearson.clamp_min(0), ssim.clamp_min(0)
-        return 2 * p * s / (p + s).clamp_min(1e-8)
-    p, s = max(float(pearson), 0.), max(float(ssim), 0.)
-    return 2 * p * s / max(p + s, 1e-8)
+# Вспомогательные веса; главный член loss — ошибка формы амплитуды.
+METRIC_WEIGHTS = (0.20, 0.10, 0.30)  # Pearson, global SSIM, local SSIM
+LOSS_VERSION = "visual-fit-v2"
 
 
 def fresnel_backward_to_slm(
@@ -41,12 +32,27 @@ def fresnel_backward_to_slm(
     distances: Sequence[float] = DISTANCES,
     wavelength: float = WAVELENGTH,
     pixel: float = PIXEL,
+    equalize_power: bool = False,
 ) -> torch.Tensor:
     """Обратное распространение каждой плоскости и взвешенная сумма в ДОЭ.
 
     Полный inverse включает 1/prefactor, поэтому масштабирование плоскостей
     согласовано с классическим GS и основным оператором Френеля.
     """
+    if equalize_power:
+        # При единичной амплитуде ДОЭ RMS выходного поля равен N/(lambda*z).
+        # Без этого маленький объект получает меньшую энергию, чем большая фигура.
+        rms = (
+            target_field.abs()
+            .square()
+            .mean((-2, -1), keepdim=True)
+            .clamp_min(1e-16)
+            .sqrt()
+        )
+        z = torch.as_tensor(
+            distances, device=target_field.device, dtype=torch.float32
+        ).view(-1, 1, 1)
+        target_field = (target_field / rms) * (N / (wavelength * z))
     per_plane_slm = fresnel_inverse_complex(target_field, distances, wavelength, pixel)
 
     if plane_weights is not None:
@@ -63,8 +69,12 @@ class SpectralConv2d(nn.Module):
         self.channels = channels
         self.modes = modes
         scale = 1.0 / (channels * channels)
-        self.weights_real = nn.Parameter(scale * torch.randn(channels, channels, modes, modes))
-        self.weights_imag = nn.Parameter(scale * torch.randn(channels, channels, modes, modes))
+        self.weights_real = nn.Parameter(
+            scale * torch.randn(channels, channels, modes, modes)
+        )
+        self.weights_imag = nn.Parameter(
+            scale * torch.randn(channels, channels, modes, modes)
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         orig_dtype = x.dtype
@@ -74,8 +84,12 @@ class SpectralConv2d(nn.Module):
             x_ft = torch.fft.rfft2(x_f32, norm="ortho")
             out_ft = torch.zeros_like(x_ft)
             m = min(self.modes, h, x_ft.shape[-1])
-            w_c = torch.complex(self.weights_real[:, :, :m, :m], self.weights_imag[:, :, :m, :m])
-            out_ft[:, :, :m, :m] = torch.einsum("bixy,ioxy->boxy", x_ft[:, :, :m, :m], w_c)
+            w_c = torch.complex(
+                self.weights_real[:, :, :m, :m], self.weights_imag[:, :, :m, :m]
+            )
+            out_ft[:, :, :m, :m] = torch.einsum(
+                "bixy,ioxy->boxy", x_ft[:, :, :m, :m], w_c
+            )
             out = torch.fft.irfft2(out_ft, s=(h, w), norm="ortho")
         return out.to(orig_dtype)
 
@@ -147,7 +161,10 @@ class TargetPlaneCrosstalkGate(nn.Module):
 
         # В светлых зонах усиливаем контраст, в тёмных зонах (targets == 0) жёстко гасим паразитное эхо
         fg_mask = (targets > 0.03).float()
-        boosted_amp = targets * (1.0 + 0.4 * torch.tanh(amp_delta)) + 0.25 * (targets - recon_norm) * fg_mask
+        boosted_amp = (
+            targets * (1.0 + 0.4 * torch.tanh(amp_delta))
+            + 0.25 * (targets - recon_norm) * fg_mask
+        )
         eff_amp = torch.clamp(boosted_amp, min=0.0)
         eff_phase = plane_phase + 0.35 * torch.tanh(phase_delta)
         return eff_amp, eff_phase
@@ -184,7 +201,9 @@ class FourierUNetRefiner(nn.Module):
             ConvNeXtSEBlock(base_dim * 4),
         )
 
-        self.up2 = nn.ConvTranspose2d(base_dim * 4, base_dim * 2, kernel_size=2, stride=2)
+        self.up2 = nn.ConvTranspose2d(
+            base_dim * 4, base_dim * 2, kernel_size=2, stride=2
+        )
         self.dec2 = nn.Sequential(
             nn.Conv2d(base_dim * 4, base_dim * 2, kernel_size=3, padding=1),
             nn.GroupNorm(8, base_dim * 2),
@@ -224,12 +243,16 @@ class HoloUnrollNet(nn.Module):
         self,
         unroll_steps: int = 8,
         base_dim: int = 56,
+        equalize_plane_power: bool = True,
     ) -> None:
         super().__init__()
         if unroll_steps < 1 or base_dim < 8 or base_dim % 8:
-            raise ValueError("unroll_steps >= 1; base_dim должен быть кратен 8 и не меньше 8")
+            raise ValueError(
+                "unroll_steps >= 1; base_dim должен быть кратен 8 и не меньше 8"
+            )
         self.unroll_steps = unroll_steps
         self.base_dim = base_dim
+        self.equalize_plane_power = equalize_plane_power
 
         # 1. Инициализация гладкой фазы на 4 целевых плоскостях
         self.target_phase_init = nn.Sequential(
@@ -247,19 +270,21 @@ class HoloUnrollNet(nn.Module):
         # 2. Двухдоменные блоки внутри каждой развёрнутой итерации:
         #    - obj_gates: фильтруют кросс-ток на 4 плоскостях объектов
         #    - slm_blocks: фильтруют фазовый фронт непосредственно на самом ДОЭ
-        self.obj_gates = nn.ModuleList([
-            TargetPlaneCrosstalkGate(hidden=32) for _ in range(unroll_steps)
-        ])
-        self.slm_blocks = nn.ModuleList([
-            nn.Sequential(
-                nn.Conv2d(6, 24, kernel_size=3, padding=1),
-                nn.GroupNorm(4, 24),
-                nn.GELU(),
-                ConvNeXtSEBlock(24, expansion=2),
-                nn.Conv2d(24, 2, kernel_size=1),
-            )
-            for _ in range(unroll_steps)
-        ])
+        self.obj_gates = nn.ModuleList(
+            [TargetPlaneCrosstalkGate(hidden=32) for _ in range(unroll_steps)]
+        )
+        self.slm_blocks = nn.ModuleList(
+            [
+                nn.Sequential(
+                    nn.Conv2d(6, 24, kernel_size=3, padding=1),
+                    nn.GroupNorm(4, 24),
+                    nn.GELU(),
+                    ConvNeXtSEBlock(24, expansion=2),
+                    nn.Conv2d(24, 2, kernel_size=1),
+                )
+                for _ in range(unroll_steps)
+            ]
+        )
         for block in self.slm_blocks:
             nn.init.zeros_(block[-1].weight)
             nn.init.zeros_(block[-1].bias)
@@ -277,14 +302,20 @@ class HoloUnrollNet(nn.Module):
         with torch.amp.autocast("cuda", enabled=False):
             targets_f32 = targets.float()
             target_field = torch.polar(targets_f32, init_angle.float())
-            slm_field = fresnel_backward_to_slm(target_field, self.plane_logits[0])
+            slm_field = fresnel_backward_to_slm(
+                target_field,
+                self.plane_logits[0],
+                equalize_power=self.equalize_plane_power,
+            )
             phase = slm_field.angle()
 
         # Шаг 2: K развёрнутых двухдоменных итераций (Object Domain + SLM Domain)
         for k in range(self.unroll_steps):
             with torch.amp.autocast("cuda", enabled=False):
                 prop_field = fresnel_propagate_complex(phase)
-                prop_norm = normalize_reconstructions(prop_field.abs(), norm="max", compare="amplitude")
+                prop_norm = normalize_reconstructions(
+                    prop_field.abs(), norm="max", compare="amplitude"
+                )
                 plane_phase = prop_field.angle()
 
             # 2a. Подавление осевого кросс-тока в пространстве 4 целевых плоскостей
@@ -296,12 +327,20 @@ class HoloUnrollNet(nn.Module):
 
             with torch.amp.autocast("cuda", enabled=False):
                 updated_target_field = torch.polar(eff_amp.float(), eff_phase.float())
-                back_field = fresnel_backward_to_slm(updated_target_field, self.plane_logits[k + 1])
+                back_field = fresnel_backward_to_slm(
+                    updated_target_field,
+                    self.plane_logits[k + 1],
+                    equalize_power=self.equalize_plane_power,
+                )
                 back_angle = back_field.angle()
 
                 alpha = torch.sigmoid(self.step_alphas[k])
-                mixed_re = (1.0 - alpha) * torch.cos(phase) + alpha * torch.cos(back_angle)
-                mixed_im = (1.0 - alpha) * torch.sin(phase) + alpha * torch.sin(back_angle)
+                mixed_re = (1.0 - alpha) * torch.cos(phase) + alpha * torch.cos(
+                    back_angle
+                )
+                mixed_im = (1.0 - alpha) * torch.sin(phase) + alpha * torch.sin(
+                    back_angle
+                )
 
             # 2b. Нейросетевая коррекция фазора в плоскости ДОЭ
             step_in = torch.cat(
@@ -311,7 +350,9 @@ class HoloUnrollNet(nn.Module):
                     torch.cos(back_angle).unsqueeze(1),
                     torch.sin(back_angle).unsqueeze(1),
                     targets.mean(dim=1, keepdim=True),
-                    (targets - prop_norm.to(targets.dtype)).abs().mean(dim=1, keepdim=True),
+                    (targets - prop_norm.to(targets.dtype))
+                    .abs()
+                    .mean(dim=1, keepdim=True),
                 ],
                 dim=1,
             ).to(targets.dtype)
@@ -324,7 +365,9 @@ class HoloUnrollNet(nn.Module):
         # Шаг 3: Финальное уточнение через Fourier-ConvNeXt U-Net
         with torch.amp.autocast("cuda", enabled=False):
             final_prop = fresnel_propagate_complex(phase)
-            final_recon = normalize_reconstructions(final_prop.abs(), norm="max", compare="amplitude")
+            final_recon = normalize_reconstructions(
+                final_prop.abs(), norm="max", compare="amplitude"
+            )
             recon_err = targets_f32 - final_recon
             cos_p, sin_p = torch.cos(phase), torch.sin(phase)
             back_re, back_im = torch.cos(back_angle), torch.sin(back_angle)
@@ -347,62 +390,83 @@ class HoloUnrollNet(nn.Module):
         return torch.atan2(final_im, final_re)
 
 
+def _image_objective(
+    recon_amp: torch.Tensor,
+    targets: torch.Tensor,
+    w_pearson: float = METRIC_WEIGHTS[0],
+    w_ssim_global: float = METRIC_WEIGHTS[1],
+    w_ssim_local: float = METRIC_WEIGHTS[2],
+    w_bg_suppress: float = 0.0,
+    w_worst_plane: float = 0.15,
+):
+    """Общий критерий обучения и уточнения; форма важнее совпадения чёрного фона."""
+    recon = normalize_reconstructions(recon_amp)
+    shape = amplitude_shape_error_torch(recon_amp, targets)
+    p = pearson_torch(recon, targets)
+    sg = ssim_global_torch(recon, targets)
+    sl = ssim_local_7x7_torch(recon, targets)
+    foreground = targets.square()
+    foreground_error = ((recon - targets).square() * foreground).sum(
+        (-2, -1)
+    ) / foreground.sum((-2, -1)).clamp_min(1e-8)
+    crosstalk = plane_crosstalk_error_torch(recon, targets)
+    visual = shape + 1.5 * foreground_error + 10.0 * crosstalk
+    loss = (
+        visual
+        + w_pearson * (1 - p)
+        + w_ssim_global * (1 - sg)
+        + w_ssim_local * (1 - sl)
+    ).mean()
+    loss = loss + w_worst_plane * shape.amax(dim=-1).mean()
+    if w_bg_suppress:
+        bg = (targets < 0.02).float()
+        loss = (
+            loss
+            + w_bg_suppress
+            * (
+                (recon.square() * bg).sum((-2, -1)) / bg.sum((-2, -1)).clamp_min(1)
+            ).mean()
+        )
+    planes = {
+        "pearson": p,
+        "ssim_global": sg,
+        "ssim_local": sl,
+        "shape_error": shape,
+        "foreground_error": foreground_error,
+        "crosstalk": crosstalk,
+        "visual_error": visual,
+    }
+    return loss, recon, planes
+
+
 def compute_sota_physics_loss(
     pred_phase: torch.Tensor,
     targets: torch.Tensor,
     w_pearson: float = METRIC_WEIGHTS[0],
     w_ssim_global: float = METRIC_WEIGHTS[1],
     w_ssim_local: float = METRIC_WEIGHTS[2],
-    w_bg_suppress: float = 0.25,
+    w_bg_suppress: float = 0.0,
     w_worst_plane: float = 0.15,
 ) -> tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
-    """
-    Триединый физический лосс высокой точности:
-      1. Pearson Correlation (глобальная линейная корреляция);
-      2. SSIM Global (глобальный структурный индекс);
-      3. SSIM Local 7x7 (точный дифференцируемый аналог ssim_skimage);
-      4. Dark-Zone Background Suppression (вычищает спекл на чёрном фоне, кратно поднимая ssim_skimage);
-      5. Worst-Plane Balancing (подтягивает самую сложную плоскость из 4).
+    """Квантованная физика: RMS-ошибка формы и вспомогательные метрики.
+
+    RMS-нормировка применяется только в обучающем критерии. Выходные изображения
+    и официальные метрики по-прежнему используют amplitude/max из ТЗ проекта.
     """
     with torch.amp.autocast("cuda", enabled=False):
-        targets_f32 = targets.float()
-        phase_eff = ste_quantize(pred_phase.float())
-        recon_amp = fresnel_reconstruct(phase_eff)
-        recon_live = normalize_reconstructions(recon_amp, norm="max", compare="amplitude")
-
-        p_planes = pearson_torch(recon_live, targets_f32)                 # [B, 4]
-        sg_planes = ssim_global_torch(recon_live, targets_f32)            # [B, 4]
-        sl_planes = ssim_local_7x7_torch(recon_live, targets_f32)         # [B, 4]
-
-        p_mean = p_planes.mean()
-        sg_mean = sg_planes.mean()
-        sl_mean = sl_planes.mean()
-
-        # Подавление когерентного спекла на чёрном фоне (где целевой сигнал == 0)
-        bg_mask = (targets_f32 < 0.02).float()
-        bg_speckle_loss = (recon_live.square() * bg_mask).sum(dim=(-2, -1)) / (
-            bg_mask.sum(dim=(-2, -1)).clamp(min=1.0)
+        amplitude = fresnel_reconstruct(ste_quantize(pred_phase.float()))
+        loss, recon, planes = _image_objective(
+            amplitude,
+            targets.float(),
+            w_pearson,
+            w_ssim_global,
+            w_ssim_local,
+            w_bg_suppress,
+            w_worst_plane,
         )
-
-        # Балансировка худшей плоскости из 4
-        combined_plane_score = (p_planes + sg_planes + sl_planes) / 3.0
-        worst_plane_loss = (1.0 - combined_plane_score.min(dim=1).values).mean()
-
-        total_loss = (
-            w_pearson * (1.0 - p_mean)
-            + w_ssim_global * (1.0 - sg_mean)
-            + w_ssim_local * (1.0 - sl_mean)
-            + w_bg_suppress * bg_speckle_loss.mean()
-            + w_worst_plane * worst_plane_loss
-        )
-
-    metrics = {
-        "loss": total_loss.detach(),
-        "pearson": p_mean.detach(),
-        "ssim_global": sg_mean.detach(),
-        "ssim_local": sl_mean.detach(),
-    }
-    return total_loss, recon_live.detach(), metrics
+    metrics = {name: value.mean().detach() for name, value in planes.items()}
+    metrics["loss"] = loss.detach()
+    return loss, recon.detach(), metrics
 
 
 def hybrid_infer_phase(
@@ -429,7 +493,6 @@ def hybrid_infer_phase(
 
     with torch.enable_grad():
         targets_f32 = targets.float()
-        bg_mask = (targets_f32 < 0.02).float()
 
         phase = init_phase.detach().clone().float().requires_grad_(True)
         optimizer = torch.optim.Adam([phase], lr=polish_lr)
@@ -446,18 +509,14 @@ def hybrid_infer_phase(
             wrapped = torch.atan2(torch.sin(phase), torch.cos(phase))
             q_phase = ste_quantize(wrapped)
             recon_amp = fresnel_reconstruct(q_phase)
-            recon_01 = normalize_reconstructions(recon_amp, norm="max", compare="amplitude")
-
-            p_val = pearson_torch(recon_01, targets_f32).mean(dim=1)
-            sg_val = ssim_global_torch(recon_01, targets_f32).mean(dim=1)
-            sl_val = ssim_local_7x7_torch(recon_01, targets_f32).mean(dim=1)
-
-            # Оцениваем качество сразу по всем 3 целевым метрикам
-            sample_scores = sum(w * metric for w, metric in zip(METRIC_WEIGHTS, (p_val, sg_val, sl_val)))
-            quality_scores = balanced_quality_score(p_val, sl_val)
+            loss, _, planes = _image_objective(recon_amp, targets_f32)
+            quality_scores = -planes["visual_error"].mean(dim=1)
+            sl_val = planes["ssim_local"].mean(dim=1)
 
             with torch.no_grad():
-                improved = (quality_scores > best_score) | ((quality_scores == best_score) & (sl_val > best_ssim))
+                improved = (quality_scores > best_score) | (
+                    (quality_scores == best_score) & (sl_val > best_ssim)
+                )
                 best_score = torch.where(improved, quality_scores, best_score)
                 best_ssim = torch.where(improved, sl_val, best_ssim)
                 best_phase[improved] = wrapped.detach()[improved]
@@ -465,8 +524,6 @@ def hybrid_infer_phase(
             if step == polish_steps:
                 break
 
-            bg_pen = (recon_01.square() * bg_mask).mean()
-            loss = (1.0 - sample_scores).mean() + 0.20 * bg_pen
             loss.backward()
             optimizer.step()
             scheduler.step()

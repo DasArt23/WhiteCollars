@@ -13,11 +13,40 @@
 
 - `HoloUnrollNet`: нейросеть с развёрнутыми физическими итерациями и Fourier U-Net.
 - Дифференцируемый single-FFT расчёт Френеля на PyTorch; независимый NumPy-эталон.
-- Обучение через физику с учётом квантования фазы в 8 бит.
-- Пирсон, глобальный SSIM и оконный SSIM; выбор лучших весов с учётом SSIM и Пирсона.
+- Обучение через физику с учётом квантования фазы в 8 бит. В `visual-fit-v2`
+  loss контролирует форму, яркость нужного объекта и разделение плоскостей;
+  энергия целевых плоскостей выравнивается.
+- Пирсон, глобальный SSIM и оконный SSIM; выбор весов по RMS-ошибке формы с контролем SSIM и Пирсона.
 - Необязательное уточнение фазы после прямого прохода сети.
 - Классический многоплоскостной алгоритм Герчберга–Сэкстона (GS) для сравнения.
 - Генерация и проверка процедурных данных, CLI и Dockerfile для сдачи.
+
+## Архитектура и научные источники
+
+`HoloUnrollNet` — название реализованной здесь комбинации физических итераций,
+свёрточных и спектральных блоков. Это **не точная копия одной опубликованной сети**
+и не готовая архитектура Google. Основной код — [src/model/holonet.py](src/model/holonet.py).
+Источники идей и отличия реализации:
+
+| Компонент проекта | Первоисточник | Что используется |
+|---|---|---|
+| Развёрнутые физические итерации | Monga, Li, Eldar, [Algorithm Unrolling](https://doi.org/10.1109/MSP.2020.3016905), IEEE SPM, 2021 | Итерационный алгоритм превращается в последовательность обучаемых шагов; наши шаги построены вокруг Френеля. |
+| `SpectralConv2d` | Li et al., [Fourier Neural Operator for Parametric Partial Differential Equations](https://arxiv.org/abs/2010.08895), ICLR 2021 | Обучаемое смешивание низких Fourier-мод. У нас упрощённый спектральный блок, а не полная официальная модель FNO. |
+| `ConvNeXtSEBlock` | Liu et al., [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545), FAIR / UC Berkeley, CVPR 2022 | Depthwise-свёртка 7×7, pointwise-преобразования, residual. В проекте изменены нормировка и структура блока, добавлен SE. |
+| Канальное внимание SE | Hu, Shen, Sun, [Squeeze-and-Excitation Networks](https://openaccess.thecvf.com/content_cvpr_2018/papers/Hu_Squeeze-and-Excitation_Networks_CVPR_2018_paper.pdf), CVPR 2018 | Глобальный pooling и обучаемое перевзвешивание каналов. |
+| `FourierUNetRefiner` | Ronneberger, Fischer, Brox, [U-Net](https://lmbweb.informatik.uni-freiburg.de/Publications/2015/RFB15a/), University of Freiburg, MICCAI 2015 | Encoder–decoder со skip-соединениями; здесь другие блоки и спектральный bottleneck. |
+| STE-квантование фазы | Bengio, Léonard, Courville, [Estimating or Propagating Gradients Through Stochastic Neurons for Conditional Computation](https://arxiv.org/abs/1308.3432), 2013 | Идея straight-through gradient; применена к нашему 8-битному фазовому PNG. |
+| Классический GS и фазовое восстановление | Fienup, [Phase retrieval algorithms: a comparison](https://doi.org/10.1364/AO.21.002758), Applied Optics, 1982 | Прямое/обратное распространение с заменой амплитуды. Наш baseline обобщён на четыре плоскости. |
+| SSIM | Wang et al., [Image quality assessment: From error visibility to structural similarity](https://ece.uwaterloo.ca/~z70wang/research/ssim/), IEEE TIP, 2004 | Определение SSIM. Конкретные global и skimage 7×7 варианты проекта описаны в RUN.md. |
+
+Профильная работа по нейросетевой голографии: Peng, Choi, Padmanaban, Wetzstein,
+[Neural Holography with Camera-in-the-loop Training](https://doi.org/10.1145/3414685.3417802),
+Stanford, ACM TOG / SIGGRAPH Asia 2020;
+[официальные код и материалы](https://github.com/computational-imaging/neural-holography).
+Это контекст для обучения голограмм через дифференцируемое распространение;
+наш `HoloUnrollNet` не является их HoloNet, калибровка камерой здесь не реализована.
+Предобученные веса этих работ не используются. Ссылки объясняют происхождение
+компонентов, а качество конкретной комбинации подтверждается только нашими экспериментами.
 
 ## Быстрый запуск на Tesla V100
 
@@ -93,7 +122,14 @@ GS-200 на всех 100 исходных validation-четвёрках, пос�
 
 Это результат классического baseline, **не точность обученной сети и не предел
 достижимого качества**. [Отчёт по примерам](reports/baseline_validation.csv).
+Неудачный запуск v1 показал, что рост SSIM может сопровождаться потерей объектов.
+В `visual-fit-v2` исправлены обучающий критерий и баланс энергии, добавлены автоматические
+validation-панели. Новая версия требует проверки обучением; команды короткого
+эксперимента и применения нового уточнения к старым весам приведены в RUN.md.
 Качество сети, время на V100 и эффект расширения измеряются после обучения.
+Примеры прямой оптимизации фазы: [панель](reports/visual_000100_visual.png),
+[результаты на пяти четвёрках](reports/visual_fit_diagnostic.json).
+Это диагностика метода, а не результат обученной сети visual-fit-v2.
 Процедурный набор не гарантирует аналогичный результат на неизвестных объектах.
 
 ## Docker для сдачи

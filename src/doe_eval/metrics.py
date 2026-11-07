@@ -8,6 +8,46 @@ from skimage.metrics import structural_similarity
 from .config import SSIM_K1, SSIM_K2
 
 
+def amplitude_shape_error_torch(
+    amplitude: torch.Tensor, target: torch.Tensor
+) -> torch.Tensor:
+    """Ошибка формы после независимой RMS-нормировки, по каждой плоскости.
+
+    Для ненулевых положительных изображений равна 2 - 2*cosine_similarity.
+    Один яркий пик не может улучшить ошибку простым затемнением всего кадра,
+    как при max-нормировке. Официальные метрики при этом не изменяются.
+    """
+    if amplitude.shape != target.shape:
+        raise ValueError("Формы амплитуды и цели должны совпадать")
+    tiny = torch.finfo(amplitude.dtype).tiny
+    rms_a = amplitude.square().mean(dim=(-2, -1), keepdim=True).clamp_min(tiny).sqrt()
+    rms_t = target.square().mean(dim=(-2, -1), keepdim=True).clamp_min(tiny).sqrt()
+    return ((amplitude / rms_a) - (target / rms_t)).square().mean(dim=(-2, -1))
+
+
+def plane_crosstalk_error_torch(
+    recon: torch.Tensor, target: torch.Tensor
+) -> torch.Tensor:
+    """Штраф сходства с чужой целью сильнее, чем со своей; возвращает [B,D]."""
+    if recon.shape != target.shape or recon.ndim != 4:
+        raise ValueError("Ожидались одинаковые тензоры [B,D,H,W]")
+    tiny = torch.finfo(recon.dtype).tiny
+    r, t = recon.flatten(-2), target.flatten(-2)
+    r = r - r.mean(-1, keepdim=True)
+    t = t - t.mean(-1, keepdim=True)
+    r = r / r.square().sum(-1, keepdim=True).clamp_min(tiny).sqrt()
+    t = t / t.square().sum(-1, keepdim=True).clamp_min(tiny).sqrt()
+    correlation = r @ t.transpose(-1, -2)
+    similarity = t @ t.transpose(-1, -2)
+    # Одинаковые цели не требуется искусственно разделять между плоскостями.
+    weights = (1 - similarity).clamp(0, 1)
+    eye = torch.eye(target.shape[1], device=target.device, dtype=target.dtype)
+    weights = weights * (1 - eye)
+    correct = correlation.diagonal(dim1=-2, dim2=-1).unsqueeze(-1)
+    confusion = (correlation - correct).clamp_min(0).square()
+    return (weights * confusion).sum(-1) / weights.sum(-1).clamp_min(1e-8)
+
+
 def pearson(a: np.ndarray, b: np.ndarray) -> float:
     """Коэффициент корреляции Пирсона между двумя картинками в [0, 1]."""
     a64 = np.asarray(a, dtype=np.float64).ravel()
@@ -63,7 +103,9 @@ def pearson_torch(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return torch.where(energy > 0, num / den, identical)
 
 
-def ssim_global_torch(a: torch.Tensor, b: torch.Tensor, data_range: float = 1.0) -> torch.Tensor:
+def ssim_global_torch(
+    a: torch.Tensor, b: torch.Tensor, data_range: float = 1.0
+) -> torch.Tensor:
     """Дифференцируемый пакетный глобальный SSIM по последним двум осям (..., H, W)."""
     a_flat = a.flatten(start_dim=-2)
     b_flat = b.flatten(start_dim=-2)
@@ -98,7 +140,9 @@ def ssim_local_7x7_torch(
     if x.shape != y.shape or x.ndim != 4:
         raise ValueError("SSIM ожидает два одинаковых тензора [B,C,H,W]")
     if win_size < 3 or win_size % 2 != 1 or min(x.shape[-2:]) < win_size:
-        raise ValueError("Размер окна SSIM должен быть нечётным и помещаться в изображении")
+        raise ValueError(
+            "Размер окна SSIM должен быть нечётным и помещаться в изображении"
+        )
     c1 = (SSIM_K1 * data_range) ** 2
     c2 = (SSIM_K2 * data_range) ** 2
     mu_x = F.avg_pool2d(x, win_size, stride=1)

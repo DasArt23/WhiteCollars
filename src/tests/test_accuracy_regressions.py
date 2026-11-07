@@ -1,4 +1,5 @@
 """Регрессии реальных ошибок метрик, распространения и обучения."""
+
 import math
 from unittest.mock import patch
 
@@ -13,8 +14,10 @@ from doe_eval.dataset import FourImageDataset
 from doe_eval.demo import generate_synthetic_targets
 from doe_eval.io import load_doe_png, save_doe_png, save_recon_png
 from doe_eval.metrics import (
+    amplitude_shape_error_torch,
     pearson,
     pearson_torch,
+    plane_crosstalk_error_torch,
     ssim_local_7x7_torch,
 )
 from doe_eval.physics import (
@@ -28,11 +31,10 @@ from doe_eval.physics import (
 from main import load_trained_holonet, synthesize_doe_and_reconstruct
 from model.holonet import (
     HoloUnrollNet,
-    balanced_quality_score,
     compute_sota_physics_loss,
     hybrid_infer_phase,
 )
-from model.train import evaluate_loader
+from model.train import evaluate_loader, save_validation_previews
 
 
 @pytest.mark.parametrize("kind", ["random", "sparse", "black", "white"])
@@ -41,17 +43,22 @@ def test_local_ssim_matches_skimage_including_dark_background(kind):
     a = rng.random((2, 4, N, N))
     b = rng.random(a.shape)
     if kind == "sparse":
-        a[a < .95] = 0
-        b[b < .95] = 0
+        a[a < 0.95] = 0
+        b[b < 0.95] = 0
     elif kind in ("black", "white"):
         a.fill(0 if kind == "black" else 1)
         b = a.copy()
     actual = ssim_local_7x7_torch(torch.from_numpy(a), torch.from_numpy(b)).numpy()
-    expected = np.array([[structural_similarity(x, y, data_range=1.0) for x, y in zip(aa, bb)] for aa, bb in zip(a, b)])
+    expected = np.array(
+        [
+            [structural_similarity(x, y, data_range=1.0) for x, y in zip(aa, bb)]
+            for aa, bb in zip(a, b)
+        ]
+    )
     np.testing.assert_allclose(actual, expected, atol=1e-10)
 
 
-@pytest.mark.parametrize("value", [0., 1.])
+@pytest.mark.parametrize("value", [0.0, 1.0])
 def test_torch_pearson_constants_match_numpy_with_finite_backward(value):
     a = torch.full((2, 4, N, N), value, requires_grad=True)
     b = torch.full_like(a, value)
@@ -69,7 +76,9 @@ def test_pearson_low_contrast_not_suppressed_by_epsilon():
 
 
 def test_complex_fresnel_matches_direct_dft_and_inverse():
-    phase = np.random.default_rng(9).uniform(-math.pi, math.pi, (N, N)).astype(np.float32)
+    phase = (
+        np.random.default_rng(9).uniform(-math.pi, math.pi, (N, N)).astype(np.float32)
+    )
     index = np.arange(N) - N // 2
     r2 = (index[:, None] ** 2 + index[None, :] ** 2) * PIXEL**2
     dft = np.exp(-2j * np.pi * np.outer(index, index) / N)
@@ -78,7 +87,9 @@ def test_complex_fresnel_matches_direct_dft_and_inverse():
         dx = WAVELENGTH * z / (N * PIXEL)
         out_r2 = (index[:, None] ** 2 + index[None, :] ** 2) * dx**2
         inner = np.exp(1j * (phase.astype(np.float64) + np.pi * r2 / (WAVELENGTH * z)))
-        factor = np.exp(1j * (2 * np.pi * z / WAVELENGTH + np.pi * out_r2 / (WAVELENGTH * z))) / (1j * WAVELENGTH * z)
+        factor = np.exp(
+            1j * (2 * np.pi * z / WAVELENGTH + np.pi * out_r2 / (WAVELENGTH * z))
+        ) / (1j * WAVELENGTH * z)
         fields.append(factor * (dft @ inner @ dft.T))
     expected = np.stack(fields)
     actual = fresnel_propagate_complex(torch.from_numpy(phase))
@@ -111,7 +122,9 @@ def test_neural_model_backward_and_single_physics_loss_pass():
     phase = model(targets)
     assert phase.shape == (1, N, N)
     assert phase.abs().max() <= math.pi
-    with patch("model.holonet.fresnel_reconstruct", wraps=fresnel_reconstruct) as propagate:
+    with patch(
+        "model.holonet.fresnel_reconstruct", wraps=fresnel_reconstruct
+    ) as propagate:
         loss, _, metrics = compute_sota_physics_loss(phase, targets)
     assert propagate.call_count == 1  # прежний loss дважды запускал всю физику
     loss.backward()
@@ -122,22 +135,32 @@ def test_neural_model_backward_and_single_physics_loss_pass():
 
 
 def _scores(phase, targets):
-    recon = normalize_reconstructions(fresnel_reconstruct(ste_quantize(phase)))
-    return balanced_quality_score(pearson_torch(recon, targets).mean(dim=1),
-                                  ssim_local_7x7_torch(recon, targets).mean(dim=1))
+    return torch.stack(
+        [
+            -compute_sota_physics_loss(p.unsqueeze(0), t.unsqueeze(0))[2][
+                "visual_error"
+            ]
+            for p, t in zip(phase, targets)
+        ]
+    )
 
 
 def test_polish_keeps_best_per_sample_and_evaluates_last_step():
     class FixedPhase(torch.nn.Module):
         def forward(self, targets):
             return initial.clone()
+
     torch.manual_seed(8)
     initial = torch.rand(2, N, N) * (2 * math.pi) - math.pi
     targets = torch.rand(2, 4, N, N)
     before = _scores(initial, targets)
-    with patch("model.holonet.fresnel_reconstruct", wraps=fresnel_reconstruct) as propagate:
+    with patch(
+        "model.holonet.fresnel_reconstruct", wraps=fresnel_reconstruct
+    ) as propagate:
         improved = hybrid_infer_phase(FixedPhase(), targets, polish_steps=1)
-    assert propagate.call_count == 2  # начальная фаза и результат единственного шага Adam
+    assert (
+        propagate.call_count == 2
+    )  # начальная фаза и результат единственного шага Adam
     after = _scores(improved, targets)
     assert torch.all(after >= before - 1e-6)
     assert torch.any(after > before + 1e-6)
@@ -147,17 +170,70 @@ def test_validation_reports_same_local_ssim_as_final_evaluation():
     class FixedPhase(torch.nn.Module):
         def forward(self, targets):
             return torch.zeros(targets.shape[0], N, N)
+
     targets = torch.from_numpy(generate_synthetic_targets()).unsqueeze(0)
     metrics = evaluate_loader(FixedPhase(), [(targets, ["demo"])], torch.device("cpu"))
-    recon = normalize_reconstructions(fresnel_reconstruct(ste_quantize(torch.zeros(1, N, N))))
-    expected = np.mean([structural_similarity(t.numpy(), r.numpy(), data_range=1.) for t, r in zip(targets[0], recon[0])])
+    recon = normalize_reconstructions(
+        fresnel_reconstruct(ste_quantize(torch.zeros(1, N, N)))
+    )
+    expected = np.mean(
+        [
+            structural_similarity(t.numpy(), r.numpy(), data_range=1.0)
+            for t, r in zip(targets[0], recon[0])
+        ]
+    )
     assert metrics["ssim_skimage"] == pytest.approx(expected, abs=2e-5)
-    assert metrics["score"] == balanced_quality_score(metrics["pearson"], metrics["ssim_skimage"])
+    assert metrics["score"] == -metrics["visual_error"]
 
 
-def test_high_ssim_with_poor_pearson_is_not_preferred():
-    assert balanced_quality_score(.1, .84) < balanced_quality_score(.5657, .1267)
-    assert balanced_quality_score(-.1, .84) == 0
+def test_shape_error_rejects_dim_objects_and_unrelated_bright_peak():
+    target = torch.zeros(1, 4, N, N)
+    target[:, :, 40:80, 40:80] = 1
+    visible = (target + 0.08).clamp_max(1)
+    degenerate = 0.01 * target
+    degenerate[:, :, 4, 4] = 1
+    # Проверяем известный контрпример: фон повышает оконный SSIM, объект теряется.
+    assert (
+        ssim_local_7x7_torch(degenerate, target).mean()
+        > ssim_local_7x7_torch(visible, target).mean()
+    )
+    assert (
+        amplitude_shape_error_torch(degenerate, target).mean()
+        > amplitude_shape_error_torch(visible, target).mean()
+    )
+    torch.testing.assert_close(
+        amplitude_shape_error_torch(5 * target, target), torch.zeros(1, 4)
+    )
+    zeros = torch.zeros_like(target, requires_grad=True)
+    amplitude_shape_error_torch(zeros, target).mean().backward()
+    assert torch.isfinite(zeros.grad).all()
+
+
+def test_power_equalization_does_not_prioritize_large_targets():
+    from model.holonet import fresnel_backward_to_slm
+
+    fields = torch.zeros(1, 4, N, N, dtype=torch.complex64)
+    fields[:, :, 30:70, 30:70] = 1
+    logits = torch.full((4,), -100.0)
+    logits[0] = 0
+    base = fresnel_backward_to_slm(fields, logits, equalize_power=True)
+    fields[:, 0] *= 0.03
+    scaled = fresnel_backward_to_slm(fields, logits, equalize_power=True)
+    torch.testing.assert_close(base, scaled, atol=1e-6, rtol=1e-5)
+    assert float(base.abs().square().mean()) == pytest.approx(1.0, abs=1e-5)
+
+
+def test_best_checkpoint_previews_are_saved_from_png(tmp_path):
+    class FixedPhase(torch.nn.Module):
+        def forward(self, targets):
+            return torch.zeros(targets.shape[0], N, N)
+
+    target = torch.from_numpy(generate_synthetic_targets())
+    loader = torch.utils.data.DataLoader([(target, "case")], batch_size=1)
+    save_validation_previews(FixedPhase(), loader, torch.device("cpu"), tmp_path)
+    assert (tmp_path / "case/doe.png").is_file()
+    assert (tmp_path / "case/comparison.png").is_file()
+    assert (tmp_path / "case/metrics.json").is_file()
 
 
 def test_checkpoint_is_required_and_state_must_match(tmp_path):
@@ -169,28 +245,65 @@ def test_checkpoint_is_required_and_state_must_match(tmp_path):
     torch.save(payload, checkpoint)
     restored, device, meta = load_trained_holonet(checkpoint, "cpu")
     assert meta["loaded"] and device.type == "cpu"
+    assert restored.equalize_plane_power is False
+    payload["equalize_plane_power"] = True
+    torch.save(payload, checkpoint)
+    restored, _, _ = load_trained_holonet(checkpoint, "cpu")
+    assert restored.equalize_plane_power is True
     payload["state_dict"].pop("step_alphas")
     torch.save(payload, checkpoint)
     with pytest.raises(RuntimeError, match="Missing key"):
         load_trained_holonet(checkpoint, "cpu")
-    result = synthesize_doe_and_reconstruct(restored, device, generate_synthetic_targets(), polish_steps=0)
+    result = synthesize_doe_and_reconstruct(
+        restored, device, generate_synthetic_targets(), polish_steps=0
+    )
     png = tmp_path / "doe.png"
     save_doe_png(result["phase_rad"], png)
     with Image.open(png) as image:
         assert image.mode == "L" and image.size == (N, N)
-    recon = normalize_reconstructions(fresnel_reconstruct(torch.from_numpy(load_doe_png(png))))
+    recon = normalize_reconstructions(
+        fresnel_reconstruct(torch.from_numpy(load_doe_png(png)))
+    )
     np.testing.assert_allclose(recon.numpy(), result["recons_01"], atol=1e-7)
 
 
 def test_numpy_reference_does_not_import_torch_or_physics():
     import subprocess
     import sys
-    subprocess.run([sys.executable, "-c", "import sys; import doe_eval.reference_numpy; assert 'torch' not in sys.modules; assert 'doe_eval.physics' not in sys.modules"], check=True)
+
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import sys; import doe_eval.reference_numpy; assert 'torch' not in sys.modules; assert 'doe_eval.physics' not in sys.modules",
+        ],
+        check=True,
+    )
 
 
 def test_ste_and_png_quantization_agree_near_rounding_boundaries():
-    boundaries = ((torch.arange(255) + .5) / 255) * (2 * math.pi) - math.pi
-    values = torch.cat([boundaries - 1e-7, boundaries, boundaries + 1e-7,
-                        torch.tensor([-math.pi, math.pi])])
+    boundaries = ((torch.arange(255) + 0.5) / 255) * (2 * math.pi) - math.pi
+    values = torch.cat(
+        [
+            boundaries - 1e-7,
+            boundaries,
+            boundaries + 1e-7,
+            torch.tensor([-math.pi, math.pi]),
+        ]
+    )
     png_codes = quantize_phase_u8(values.numpy())
-    torch.testing.assert_close(quantize_phase_u8(ste_quantize(values)), torch.from_numpy(png_codes))
+    torch.testing.assert_close(
+        quantize_phase_u8(ste_quantize(values)), torch.from_numpy(png_codes)
+    )
+
+
+def test_depth_confusion_penalizes_swapped_images_and_allows_identical_targets():
+    targets = torch.from_numpy(generate_synthetic_targets()).unsqueeze(0)
+    swapped = targets.roll(1, dims=1).clone().requires_grad_()
+    assert plane_crosstalk_error_torch(targets, targets).max() < 1e-8
+    error = plane_crosstalk_error_torch(swapped, targets).mean()
+    assert error > 0.1
+    error.backward()
+    assert torch.isfinite(swapped.grad).all() and swapped.grad.abs().sum() > 0
+    same = targets[:, :1].expand(-1, 4, -1, -1)
+    assert plane_crosstalk_error_torch(same, same).max() < 1e-8

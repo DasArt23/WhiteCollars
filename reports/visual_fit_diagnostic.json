@@ -1,0 +1,391 @@
+{
+  "scope": "five validation quartets; direct phase optimization, not neural-network training",
+  "steps": 400,
+  "samples": [
+    {
+      "id": "validation_000001",
+      "initial": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.6906316058114061,
+            "ssim_global": 0.280346714223611,
+            "ssim_skimage": 0.16491802542881392
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.8311985692629932,
+            "ssim_global": 0.4780706085739901,
+            "ssim_skimage": 0.15329386766377776
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.6582663211825309,
+            "ssim_global": 0.36527844394236086,
+            "ssim_skimage": 0.16345218097914715
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.4419501657686535,
+            "ssim_global": 0.22118995303280287,
+            "ssim_skimage": 0.1766149730807957
+          }
+        ],
+        "mean": {
+          "pearson": 0.655511665506396,
+          "ssim_global": 0.33622142994319115,
+          "ssim_skimage": 0.16456976178813365
+        }
+      },
+      "visual": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.5891231024217695,
+            "ssim_global": 0.14341766259966698,
+            "ssim_skimage": 0.14734570851271814
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.7915315798376903,
+            "ssim_global": 0.6869456868962889,
+            "ssim_skimage": 0.12350786211033679
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.6509833993353467,
+            "ssim_global": 0.5798521191659919,
+            "ssim_skimage": 0.1323464266841071
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.5160859900912478,
+            "ssim_global": 0.13832950009369446,
+            "ssim_skimage": 0.15388045784253299
+          }
+        ],
+        "mean": {
+          "pearson": 0.6369310179215135,
+          "ssim_global": 0.3871362421889106,
+          "ssim_skimage": 0.13927011378742377
+        }
+      }
+    },
+    {
+      "id": "validation_000002",
+      "initial": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.7326043906517595,
+            "ssim_global": 0.5801556267687659,
+            "ssim_skimage": 0.08515693483536477
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.6743026301236084,
+            "ssim_global": 0.2505003719892324,
+            "ssim_skimage": 0.10185383039381989
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.7899320492754154,
+            "ssim_global": 0.4768702249823268,
+            "ssim_skimage": 0.12269563094541057
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.4072366440446742,
+            "ssim_global": 0.29055201674378733,
+            "ssim_skimage": 0.12062293586412212
+          }
+        ],
+        "mean": {
+          "pearson": 0.6510189285238644,
+          "ssim_global": 0.39951956012102813,
+          "ssim_skimage": 0.10758233300967934
+        }
+      },
+      "visual": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.6306493186542083,
+            "ssim_global": 0.3660062511795369,
+            "ssim_skimage": 0.0685908452046195
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.6714087888263321,
+            "ssim_global": 0.5240588364424353,
+            "ssim_skimage": 0.08144526124126489
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.6669265165390825,
+            "ssim_global": 0.26616373014752415,
+            "ssim_skimage": 0.08809412701985074
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.5466643399479766,
+            "ssim_global": 0.24879277988811985,
+            "ssim_skimage": 0.07660775392578373
+          }
+        ],
+        "mean": {
+          "pearson": 0.6289122409918999,
+          "ssim_global": 0.35125539941440403,
+          "ssim_skimage": 0.07868449684787972
+        }
+      }
+    },
+    {
+      "id": "validation_000034",
+      "initial": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.7793554186691937,
+            "ssim_global": 0.5299075534613314,
+            "ssim_skimage": 0.13845860942612248
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.7545027016460273,
+            "ssim_global": 0.43172012860208314,
+            "ssim_skimage": 0.12435579427750408
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.3071892924636311,
+            "ssim_global": 0.2466917861128865,
+            "ssim_skimage": 0.1411827498561515
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.7718173682771998,
+            "ssim_global": 0.6298526719751523,
+            "ssim_skimage": 0.10295710789678035
+          }
+        ],
+        "mean": {
+          "pearson": 0.653216195264013,
+          "ssim_global": 0.45954303503786337,
+          "ssim_skimage": 0.1267385653641396
+        }
+      },
+      "visual": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.6743556054886832,
+            "ssim_global": 0.2751150322000584,
+            "ssim_skimage": 0.06692263025017113
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.6914345408151529,
+            "ssim_global": 0.5693589041948574,
+            "ssim_skimage": 0.05252600323891419
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.4808348550165335,
+            "ssim_global": 0.23127490241871657,
+            "ssim_skimage": 0.08241521101823229
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.6802408915225947,
+            "ssim_global": 0.4383387083091928,
+            "ssim_skimage": 0.06755218727379474
+          }
+        ],
+        "mean": {
+          "pearson": 0.6317164732107411,
+          "ssim_global": 0.37852188678070625,
+          "ssim_skimage": 0.06735400794527809
+        }
+      }
+    },
+    {
+      "id": "validation_000067",
+      "initial": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.4377140218505353,
+            "ssim_global": 0.19052792701057852,
+            "ssim_skimage": 0.14354890636396403
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.6031826992186932,
+            "ssim_global": 0.4025373087570923,
+            "ssim_skimage": 0.14129339945678757
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.5028775525066518,
+            "ssim_global": 0.35736305521048195,
+            "ssim_skimage": 0.13458903160450658
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.6095791609651627,
+            "ssim_global": 0.46577178812495795,
+            "ssim_skimage": 0.0894313638267249
+          }
+        ],
+        "mean": {
+          "pearson": 0.5383383586352607,
+          "ssim_global": 0.3540500197757777,
+          "ssim_skimage": 0.12721567531299577
+        }
+      },
+      "visual": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.497270741791746,
+            "ssim_global": 0.37535622161993837,
+            "ssim_skimage": 0.04983489806470713
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.5134876099907515,
+            "ssim_global": 0.167184859788007,
+            "ssim_skimage": 0.06511689503896778
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.507611371290206,
+            "ssim_global": 0.22355071780884198,
+            "ssim_skimage": 0.07279523044203237
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.5754375692009246,
+            "ssim_global": 0.3448839600813134,
+            "ssim_skimage": 0.06823192289599476
+          }
+        ],
+        "mean": {
+          "pearson": 0.523451823068407,
+          "ssim_global": 0.27774393982452517,
+          "ssim_skimage": 0.06399473661042551
+        }
+      }
+    },
+    {
+      "id": "validation_000100",
+      "initial": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.5179559390656655,
+            "ssim_global": 0.32121285282361445,
+            "ssim_skimage": 0.11505137649999202
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.580222384127944,
+            "ssim_global": 0.42277451670322447,
+            "ssim_skimage": 0.1012339680416708
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.4370797462905669,
+            "ssim_global": 0.2975962752877524,
+            "ssim_skimage": 0.08803879518375791
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.5097234273576369,
+            "ssim_global": 0.35955185507448106,
+            "ssim_skimage": 0.06577144236773774
+          }
+        ],
+        "mean": {
+          "pearson": 0.5112453742104534,
+          "ssim_global": 0.3502838749722681,
+          "ssim_skimage": 0.09252389552328961
+        }
+      },
+      "visual": {
+        "planes": [
+          {
+            "plane": 1,
+            "distance_mm": 24.1,
+            "pearson": 0.4944073827789874,
+            "ssim_global": 0.1469620529828235,
+            "ssim_skimage": 0.06327730134415796
+          },
+          {
+            "plane": 2,
+            "distance_mm": 25.3,
+            "pearson": 0.5254794497803359,
+            "ssim_global": 0.24091136625445303,
+            "ssim_skimage": 0.08457274255130336
+          },
+          {
+            "plane": 3,
+            "distance_mm": 26.5,
+            "pearson": 0.4721571366151497,
+            "ssim_global": 0.1689375846707921,
+            "ssim_skimage": 0.04810700842757516
+          },
+          {
+            "plane": 4,
+            "distance_mm": 27.7,
+            "pearson": 0.5131138604603164,
+            "ssim_global": 0.23863214500841448,
+            "ssim_skimage": 0.05181246195918689
+          }
+        ],
+        "mean": {
+          "pearson": 0.5012894574086973,
+          "ssim_global": 0.19886078722912076,
+          "ssim_skimage": 0.06194237857055583
+        }
+      }
+    }
+  ]
+}
