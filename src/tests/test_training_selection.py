@@ -27,7 +27,11 @@ def test_metric_regression_preserves_initial_checkpoint_and_plateau_reduces_lr(
     model = Tiny()
     starting_state = deepcopy(model.state_dict())
     monkeypatch.setattr(train, "initialize_training_model", lambda *args: model)
-    batch = [(torch.zeros(1, 4, 128, 128), ["sample"])]
+
+    class BatchLoader(list):
+        dataset = (None,)
+
+    batch = BatchLoader([(torch.zeros(1, 4, 128, 128), ["sample"])])
     monkeypatch.setattr(
         train,
         "build_dataloaders",

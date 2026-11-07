@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "diagnostic": 1,
+    "train": 5208,
+    "validation": 100,
+    "test": 100
+  },
+  "added_train": 600,
+  "added_groups": {
+    "physical_forward": 240,
+    "soft_independent": 360
+  },
+  "base_held_out_preserved": true,
+  "new_held_out": "soft600/manifest.json",
+  "new_validation": 100,
+  "new_test": 100,
+  "target_pixel_duplicates": 0,
+  "source_manifest_sha256": "105092ee2714af59a3d2bf396705b4797f4561154efeb0e2ccf3ed9dd56a6551"
+}

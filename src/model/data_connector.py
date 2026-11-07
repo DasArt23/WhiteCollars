@@ -245,12 +245,13 @@ class ManifestQuartetDataset(Dataset):
             )
 
         if self.split == "train":
-            fixed_planes = record.params.get("preserve_plane_order", False) or (
+            physical = record.params.get("kind") == "physical_forward" or (
                 record.params.get("exchange", {}).get("kind") == "A"
             )
+            fixed_planes = record.params.get("preserve_plane_order", False) or physical
             if self.augment_channel_shuffle and not fixed_planes:
                 arr = arr[self.rng.permutation(4)]
-            if self.augment_dihedral:
+            if self.augment_dihedral and not physical:
                 k = int(self.rng.integers(0, 4))
                 if k:
                     arr = np.rot90(arr, k=k, axes=(1, 2))

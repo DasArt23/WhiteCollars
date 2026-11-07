@@ -1,0 +1,187 @@
+{
+  "scope": "CPU FP32 full architecture 6 unroll/48 channels, 20,347,320 parameters; TRAIN only; no long training",
+  "controls_are_not_network_results": true,
+  "reference_gray_level_error_max": 1.0,
+  "runs": {
+    "physical_one": {
+      "steps": 16,
+      "seconds": 92.81059248300153,
+      "ids": [
+        "soft1_train_000001"
+      ],
+      "initial": {
+        "pearson": 0.8436983823776245,
+        "ssim_global": 0.8303484916687012,
+        "ssim_local": 0.43710270524024963,
+        "shape_error": 0.15471279621124268,
+        "foreground_error": 0.023871373385190964,
+        "brightness_error": 0.04350019991397858,
+        "crosstalk": 0.0,
+        "background_energy": 0.011824817396700382,
+        "foreign_energy": 0.0025743646547198296,
+        "multiscale_error": 0.07690808922052383,
+        "edge_error": 0.5299665927886963,
+        "power_error": 0.3560265898704529,
+        "background_error": 0.0061739468947052956,
+        "visual_error": 0.37109118700027466,
+        "selection_error": 1.103395938873291,
+        "worst_pearson": 0.8371230959892273,
+        "worst_ssim_local": 0.4031003415584564,
+        "loss": 1.103395938873291,
+        "phase_circular_variance": 0.9942225217819214
+      },
+      "final": {
+        "pearson": 0.8524699211120605,
+        "ssim_global": 0.8482497334480286,
+        "ssim_local": 0.44649893045425415,
+        "shape_error": 0.14649827778339386,
+        "foreground_error": 0.019623931497335434,
+        "brightness_error": 0.027697419747710228,
+        "crosstalk": 0.0,
+        "background_energy": 0.011460155248641968,
+        "foreign_energy": 0.002488893223926425,
+        "multiscale_error": 0.06446734070777893,
+        "edge_error": 0.5169900059700012,
+        "power_error": 0.3214390277862549,
+        "background_error": 0.006494308356195688,
+        "visual_error": 0.3371843695640564,
+        "selection_error": 1.0134671926498413,
+        "worst_pearson": 0.8471419811248779,
+        "worst_ssim_local": 0.39811843633651733,
+        "loss": 1.0134671926498413,
+        "phase_circular_variance": 0.9861624836921692
+      },
+      "gradient_norm_min": 0.2053122069892176,
+      "gradient_norm_max": 1.1891424851840102,
+      "parameter_change_from_start_l2": {
+        "initializer_head": 0.0846472904086113,
+        "refiner_head": 0.1131044402718544,
+        "plane_logits": 0.050602179020643234
+      }
+    },
+    "physical_four": {
+      "steps": 16,
+      "seconds": 92.3360923500004,
+      "ids": [
+        "soft1_train_000001",
+        "soft1_train_000004",
+        "soft1_train_000007",
+        "soft1_train_000009"
+      ],
+      "initial": {
+        "pearson": 0.8437329679727554,
+        "ssim_global": 0.831349104642868,
+        "ssim_local": 0.4429187700152397,
+        "shape_error": 0.15719078108668327,
+        "foreground_error": 0.022489314898848534,
+        "brightness_error": 0.035606696270406246,
+        "crosstalk": 0.0,
+        "background_energy": 0.012708734255284071,
+        "foreign_energy": 0.0022532896837219596,
+        "multiscale_error": 0.0804684329777956,
+        "edge_error": 0.5626451671123505,
+        "power_error": 0.3585312068462372,
+        "background_error": 0.005879111238755286,
+        "visual_error": 0.3774915859103203,
+        "selection_error": 1.10744309425354,
+        "worst_pearson": 0.8364110141992569,
+        "worst_ssim_local": 0.41995061188936234,
+        "loss": 1.10744309425354,
+        "phase_circular_variance": 0.9912444949150085
+      },
+      "final": {
+        "pearson": 0.8448366075754166,
+        "ssim_global": 0.8403740525245667,
+        "ssim_local": 0.44821391999721527,
+        "shape_error": 0.15614640712738037,
+        "foreground_error": 0.021021840628236532,
+        "brightness_error": 0.029847302474081516,
+        "crosstalk": 0.0,
+        "background_energy": 0.012621616944670677,
+        "foreign_energy": 0.002225139149231836,
+        "multiscale_error": 0.06937668845057487,
+        "edge_error": 0.5505705177783966,
+        "power_error": 0.35341139882802963,
+        "background_error": 0.005869286716915667,
+        "visual_error": 0.3651052638888359,
+        "selection_error": 1.07409006357193,
+        "worst_pearson": 0.8378783315420151,
+        "worst_ssim_local": 0.40803010761737823,
+        "loss": 1.07409006357193,
+        "phase_circular_variance": 0.9902986139059067
+      },
+      "gradient_norm_min": 0.3720352798855373,
+      "gradient_norm_max": 2.140422343063772,
+      "parameter_change_from_start_l2": {
+        "initializer_head": 0.05559572950005531,
+        "refiner_head": 0.07012117654085159,
+        "plane_logits": 0.033464424312114716
+      }
+    },
+    "soft_four": {
+      "steps": 8,
+      "seconds": 45.70662856799754,
+      "ids": [
+        "soft1_train_000002",
+        "soft1_train_000003",
+        "soft1_train_000005",
+        "soft1_train_000006"
+      ],
+      "initial": {
+        "pearson": 0.6902769207954407,
+        "ssim_global": 0.49439189583063126,
+        "ssim_local": 0.0842254776507616,
+        "shape_error": 0.4959409460425377,
+        "foreground_error": 0.2473558597266674,
+        "brightness_error": 0.40630294382572174,
+        "crosstalk": 0.002859837912637886,
+        "background_energy": 0.2748923972249031,
+        "foreign_energy": 0.2244555987417698,
+        "multiscale_error": 0.4578601270914078,
+        "edge_error": 0.19069160893559456,
+        "power_error": 0.7264019995927811,
+        "background_error": 0.011472913902252913,
+        "visual_error": 1.1718677282333374,
+        "selection_error": 2.9944754242897034,
+        "worst_pearson": 0.5771946534514427,
+        "worst_ssim_local": 0.07435473427176476,
+        "loss": 2.9944754242897034,
+        "phase_circular_variance": 0.9915723949670792
+      },
+      "final": {
+        "pearson": 0.6900615096092224,
+        "ssim_global": 0.5065854266285896,
+        "ssim_local": 0.08365552313625813,
+        "shape_error": 0.4966724291443825,
+        "foreground_error": 0.23846131935715675,
+        "brightness_error": 0.3961480185389519,
+        "crosstalk": 0.00277810070929263,
+        "background_energy": 0.27695079520344734,
+        "foreign_energy": 0.22575223073363304,
+        "multiscale_error": 0.44897713512182236,
+        "edge_error": 0.2022862248122692,
+        "power_error": 0.721561998128891,
+        "background_error": 0.012268675724044442,
+        "visual_error": 1.1539106369018555,
+        "selection_error": 2.952452063560486,
+        "worst_pearson": 0.5781078040599823,
+        "worst_ssim_local": 0.07295381277799606,
+        "loss": 2.952452063560486,
+        "phase_circular_variance": 0.9861927628517151
+      },
+      "gradient_norm_min": 1.2891917571983091,
+      "gradient_norm_max": 15.298015485983539,
+      "parameter_change_from_start_l2": {
+        "initializer_head": 0.05369798466563225,
+        "refiner_head": 0.027081171050667763,
+        "plane_logits": 0.021064311265945435
+      }
+    }
+  },
+  "limitations": [
+    "Fresh initialization, not the actual trained server checkpoint.",
+    "Constant LR=0.001, no scheduler in short diagnostics.",
+    "Not proof of complete overfitting or generalization.",
+    "No test tuning."
+  ]
+}

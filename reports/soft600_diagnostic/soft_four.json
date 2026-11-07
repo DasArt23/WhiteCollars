@@ -1,0 +1,2437 @@
+{
+  "scope": "bounded TRAIN-only diagnostic; no reference-phase supervision",
+  "group": "soft_independent",
+  "ids": [
+    "soft1_train_000002",
+    "soft1_train_000003",
+    "soft1_train_000005",
+    "soft1_train_000006"
+  ],
+  "manifest": "/home/fen1x/Documents/projects/WhiteCollars/src/dataset/data_soft600/manifest.json",
+  "device": "cpu",
+  "torch": "2.10.0+cu126",
+  "precision": "fp32/complex64",
+  "unroll_steps": 6,
+  "base_dim": 48,
+  "initial_checkpoint": null,
+  "loss_version": "global-fidelity-v5",
+  "parameters": 20347320,
+  "optimizer_parameters_match_model": true,
+  "scheduler": "none; constant LR diagnostic",
+  "lr": 0.001,
+  "max_steps": 8,
+  "max_seconds": 60.0,
+  "tensor_stats": {
+    "targets": {
+      "shape": [
+        1,
+        4,
+        128,
+        128
+      ],
+      "dtype": "torch.float32",
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.15597176551818848,
+      "std": 0.30540138483047485,
+      "finite": true,
+      "requires_grad": false,
+      "grad_fn": null
+    },
+    "target_phase_init": {
+      "input": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.15597176551818848,
+          "std": 0.30540138483047485,
+          "finite": true,
+          "requires_grad": false,
+          "grad_fn": null
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          8,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": -1.1244157552719116,
+        "max": 1.1033198833465576,
+        "mean": 0.0486559234559536,
+        "std": 0.26594436168670654,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "fresnel_backward_to_slm": [
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.complex64",
+            "min": 0.0,
+            "max": 1.0,
+            "mean": 0.15597176551818848,
+            "std": 0.30540138483047485,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "PolarBackward0"
+          },
+          {
+            "shape": [
+              4
+            ],
+            "dtype": "torch.float32",
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "SelectBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 0.0022122133523225784,
+          "max": 1.5458904504776,
+          "mean": 0.44268861413002014,
+          "std": 0.23212280869483948,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "SumBackward1"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.complex64",
+            "min": 0.0,
+            "max": 1.2406681776046753,
+            "mean": 0.17933714389801025,
+            "std": 0.35639262199401855,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "PolarBackward0"
+          },
+          {
+            "shape": [
+              4
+            ],
+            "dtype": "torch.float32",
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "SelectBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 0.01127651333808899,
+          "max": 1.6659222841262817,
+          "mean": 0.6648172736167908,
+          "std": 0.2556198239326477,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "SumBackward1"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.complex64",
+            "min": 0.0,
+            "max": 1.2485147714614868,
+            "mean": 0.17845624685287476,
+            "std": 0.3546251654624939,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "PolarBackward0"
+          },
+          {
+            "shape": [
+              4
+            ],
+            "dtype": "torch.float32",
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "SelectBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 0.029535438865423203,
+          "max": 1.562940239906311,
+          "mean": 0.6841087341308594,
+          "std": 0.2383071780204773,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "SumBackward1"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.complex64",
+            "min": 0.0,
+            "max": 1.2431830167770386,
+            "mean": 0.17778022587299347,
+            "std": 0.35329747200012207,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "PolarBackward0"
+          },
+          {
+            "shape": [
+              4
+            ],
+            "dtype": "torch.float32",
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "SelectBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 0.029141951352357864,
+          "max": 1.4997968673706055,
+          "mean": 0.6941332221031189,
+          "std": 0.22876903414726257,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "SumBackward1"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.complex64",
+            "min": 0.0,
+            "max": 1.2368804216384888,
+            "mean": 0.1773664355278015,
+            "std": 0.3525044918060303,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "PolarBackward0"
+          },
+          {
+            "shape": [
+              4
+            ],
+            "dtype": "torch.float32",
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "SelectBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 0.013806481845676899,
+          "max": 1.4793446063995361,
+          "mean": 0.7007841467857361,
+          "std": 0.22193391621112823,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "SumBackward1"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.complex64",
+            "min": 0.0,
+            "max": 1.2313448190689087,
+            "mean": 0.17719462513923645,
+            "std": 0.3521338105201721,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "PolarBackward0"
+          },
+          {
+            "shape": [
+              4
+            ],
+            "dtype": "torch.float32",
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "SelectBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 0.03901764750480652,
+          "max": 1.4693591594696045,
+          "mean": 0.7057716846466064,
+          "std": 0.21671073138713837,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "SumBackward1"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.complex64",
+            "min": 0.0,
+            "max": 1.2265896797180176,
+            "mean": 0.1771724820137024,
+            "std": 0.3520102798938751,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "PolarBackward0"
+          },
+          {
+            "shape": [
+              4
+            ],
+            "dtype": "torch.float32",
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "std": 0.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "SelectBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 0.0423465222120285,
+          "max": 1.4587031602859497,
+          "mean": 0.709800124168396,
+          "std": 0.21243944764137268,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "SumBackward1"
+        }
+      }
+    ],
+    "fresnel_propagate_complex": [
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.139636516571045,
+            "max": 3.141436815261841,
+            "mean": 0.0005308290710672736,
+            "std": 1.8133410215377808,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AngleBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 5400333.0,
+          "max": 57403981824.0,
+          "mean": 6913463808.0,
+          "std": 6261127680.0,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "MulBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.1415793895721436,
+            "max": 3.141390800476074,
+            "mean": 0.012891403399407864,
+            "std": 1.8148349523544312,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "Atan2Backward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 17772904.0,
+          "max": 57183838208.0,
+          "mean": 6758600704.0,
+          "std": 6427990016.0,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "MulBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.140824794769287,
+            "max": 3.1415817737579346,
+            "mean": 0.007761127315461636,
+            "std": 1.8133411407470703,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "Atan2Backward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 8878218.0,
+          "max": 54902095872.0,
+          "mean": 6677325824.0,
+          "std": 6512377856.0,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "MulBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.1414079666137695,
+            "max": 3.1409246921539307,
+            "mean": 0.009214339777827263,
+            "std": 1.8116240501403809,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "Atan2Backward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 5462548.0,
+          "max": 54231760896.0,
+          "mean": 6628213760.0,
+          "std": 6562358784.0,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "MulBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.1412506103515625,
+            "max": 3.1412320137023926,
+            "mean": 0.005556848831474781,
+            "std": 1.8108763694763184,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "Atan2Backward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 12949979.0,
+          "max": 53530779648.0,
+          "mean": 6593251328.0,
+          "std": 6597485568.0,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "MulBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.141231060028076,
+            "max": 3.1415622234344482,
+            "mean": 0.006362661253660917,
+            "std": 1.8103262186050415,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "Atan2Backward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 5084738.0,
+          "max": 52728139776.0,
+          "mean": 6565364736.0,
+          "std": 6625237504.0,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "MulBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.141279458999634,
+            "max": 3.1410484313964844,
+            "mean": 0.0005700523033738136,
+            "std": 1.810335636138916,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "Atan2Backward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.complex64",
+          "min": 4582195.0,
+          "max": 52205039616.0,
+          "mean": 6542237696.0,
+          "std": 6648075776.0,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "MulBackward0"
+        }
+      }
+    ],
+    "normalize_reconstructions": [
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 5400333.0,
+            "max": 57403981824.0,
+            "mean": 6913463808.0,
+            "std": 6261127680.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.00010479828779352829,
+          "max": 1.0,
+          "mean": 0.1424802988767624,
+          "std": 0.12960882484912872,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 17772904.0,
+            "max": 57183838208.0,
+            "mean": 6758600704.0,
+            "std": 6427990016.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0003108029195573181,
+          "max": 1.0,
+          "mean": 0.13922002911567688,
+          "std": 0.13319851458072662,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 8878218.0,
+            "max": 54902095872.0,
+            "mean": 6677325824.0,
+            "std": 6512377856.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0001813019480323419,
+          "max": 1.0,
+          "mean": 0.13982029259204865,
+          "std": 0.13723555207252502,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 5462548.0,
+            "max": 54231760896.0,
+            "mean": 6628213760.0,
+            "std": 6562358784.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.00012459733989089727,
+          "max": 1.0,
+          "mean": 0.14067791402339935,
+          "std": 0.14031514525413513,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 12949979.0,
+            "max": 53530779648.0,
+            "mean": 6593251328.0,
+            "std": 6597485568.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0002998178533744067,
+          "max": 1.0,
+          "mean": 0.1397266685962677,
+          "std": 0.1410505473613739,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 5084738.0,
+            "max": 52728139776.0,
+            "mean": 6565364736.0,
+            "std": 6625237504.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 9.643309749662876e-05,
+          "max": 1.0,
+          "mean": 0.1379956305027008,
+          "std": 0.14052818715572357,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 4582195.0,
+            "max": 52205039616.0,
+            "mean": 6542237696.0,
+            "std": 6648075776.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.00010058533371193334,
+          "max": 1.0,
+          "mean": 0.1372094750404358,
+          "std": 0.14081811904907227,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      },
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              4,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": 799478.875,
+            "max": 52182077440.0,
+            "mean": 6542566400.0,
+            "std": 6647752192.0,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "AbsBackward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 1.532094756839797e-05,
+          "max": 1.0,
+          "mean": 0.13727468252182007,
+          "std": 0.14089205861091614,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        }
+      }
+    ],
+    "obj_gates.0": {
+      "input": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.15597176551818848,
+          "std": 0.30540138483047485,
+          "finite": true,
+          "requires_grad": false,
+          "grad_fn": null
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.00010479828779352829,
+          "max": 1.0,
+          "mean": 0.1424802988767624,
+          "std": 0.12960882484912872,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.14152455329895,
+          "max": 3.1415481567382812,
+          "mean": -0.006683102808892727,
+          "std": 1.8137919902801514,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AngleBackward0"
+        }
+      ],
+      "output": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.2406681776046753,
+          "mean": 0.17933714389801025,
+          "std": 0.35639262199401855,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "ClampBackward1"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.14152455329895,
+          "max": 3.1415481567382812,
+          "mean": -0.006683102808892727,
+          "std": 1.8137919902801514,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AddBackward0"
+        }
+      ]
+    },
+    "slm_blocks.0": {
+      "input": [
+        {
+          "shape": [
+            1,
+            6,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -1.0,
+          "max": 1.0,
+          "mean": 0.055656854063272476,
+          "std": 0.5878201127052307,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "CatBackward0"
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          2,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "obj_gates.1": {
+      "input": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.15597176551818848,
+          "std": 0.30540138483047485,
+          "finite": true,
+          "requires_grad": false,
+          "grad_fn": null
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0003108029195573181,
+          "max": 1.0,
+          "mean": 0.13922002911567688,
+          "std": 0.13319851458072662,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1414310932159424,
+          "max": 3.1414544582366943,
+          "mean": 0.0005512961652129889,
+          "std": 1.8124736547470093,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AngleBackward0"
+        }
+      ],
+      "output": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.2485147714614868,
+          "mean": 0.17845626175403595,
+          "std": 0.3546251654624939,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "ClampBackward1"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1414310932159424,
+          "max": 3.1414544582366943,
+          "mean": 0.0005512961652129889,
+          "std": 1.8124736547470093,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AddBackward0"
+        }
+      ]
+    },
+    "slm_blocks.1": {
+      "input": [
+        {
+          "shape": [
+            1,
+            6,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -1.0,
+          "max": 1.0,
+          "mean": 0.054408326745033264,
+          "std": 0.5902596116065979,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "CatBackward0"
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          2,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "obj_gates.2": {
+      "input": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.15597176551818848,
+          "std": 0.30540138483047485,
+          "finite": true,
+          "requires_grad": false,
+          "grad_fn": null
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0001813019480323419,
+          "max": 1.0,
+          "mean": 0.13982029259204865,
+          "std": 0.13723555207252502,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1415810585021973,
+          "max": 3.1415672302246094,
+          "mean": 0.004844458773732185,
+          "std": 1.8126634359359741,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AngleBackward0"
+        }
+      ],
+      "output": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.2431830167770386,
+          "mean": 0.17778022587299347,
+          "std": 0.35329747200012207,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "ClampBackward1"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1415810585021973,
+          "max": 3.1415672302246094,
+          "mean": 0.004844458773732185,
+          "std": 1.8126634359359741,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AddBackward0"
+        }
+      ]
+    },
+    "slm_blocks.2": {
+      "input": [
+        {
+          "shape": [
+            1,
+            6,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -1.0,
+          "max": 1.0,
+          "mean": 0.053918734192848206,
+          "std": 0.5907681584358215,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "CatBackward0"
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          2,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "obj_gates.3": {
+      "input": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.15597176551818848,
+          "std": 0.30540138483047485,
+          "finite": true,
+          "requires_grad": false,
+          "grad_fn": null
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.00012459733989089727,
+          "max": 1.0,
+          "mean": 0.14067791402339935,
+          "std": 0.14031514525413513,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.141584873199463,
+          "max": 3.141512870788574,
+          "mean": 0.007628546096384525,
+          "std": 1.8132575750350952,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AngleBackward0"
+        }
+      ],
+      "output": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.2368804216384888,
+          "mean": 0.1773664355278015,
+          "std": 0.3525044918060303,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "ClampBackward1"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.141584873199463,
+          "max": 3.141512870788574,
+          "mean": 0.007628546096384525,
+          "std": 1.8132575750350952,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AddBackward0"
+        }
+      ]
+    },
+    "slm_blocks.3": {
+      "input": [
+        {
+          "shape": [
+            1,
+            6,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -1.0,
+          "max": 1.0,
+          "mean": 0.053637247532606125,
+          "std": 0.5909723043441772,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "CatBackward0"
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          2,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "obj_gates.4": {
+      "input": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.15597176551818848,
+          "std": 0.30540138483047485,
+          "finite": true,
+          "requires_grad": false,
+          "grad_fn": null
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0002998178533744067,
+          "max": 1.0,
+          "mean": 0.1397266685962677,
+          "std": 0.1410505473613739,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1414897441864014,
+          "max": 3.1415441036224365,
+          "mean": 0.006091448478400707,
+          "std": 1.8151862621307373,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AngleBackward0"
+        }
+      ],
+      "output": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.2313448190689087,
+          "mean": 0.17719462513923645,
+          "std": 0.3521338105201721,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "ClampBackward1"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1414897441864014,
+          "max": 3.1415441036224365,
+          "mean": 0.006091448478400707,
+          "std": 1.8151862621307373,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AddBackward0"
+        }
+      ]
+    },
+    "slm_blocks.4": {
+      "input": [
+        {
+          "shape": [
+            1,
+            6,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -1.0,
+          "max": 1.0,
+          "mean": 0.05322229489684105,
+          "std": 0.5910251140594482,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "CatBackward0"
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          2,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "obj_gates.5": {
+      "input": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.15597176551818848,
+          "std": 0.30540138483047485,
+          "finite": true,
+          "requires_grad": false,
+          "grad_fn": null
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 9.643309749662876e-05,
+          "max": 1.0,
+          "mean": 0.1379956305027008,
+          "std": 0.14052818715572357,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "DivBackward0"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1415884494781494,
+          "max": 3.1411640644073486,
+          "mean": 0.004331034608185291,
+          "std": 1.8151006698608398,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AngleBackward0"
+        }
+      ],
+      "output": [
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": 0.0,
+          "max": 1.2265896797180176,
+          "mean": 0.1771724820137024,
+          "std": 0.3520102798938751,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "ClampBackward1"
+        },
+        {
+          "shape": [
+            1,
+            4,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1415884494781494,
+          "max": 3.1411640644073486,
+          "mean": 0.004331034608185291,
+          "std": 1.8151006698608398,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AddBackward0"
+        }
+      ]
+    },
+    "slm_blocks.5": {
+      "input": [
+        {
+          "shape": [
+            1,
+            6,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -1.0,
+          "max": 1.0,
+          "mean": 0.05272945761680603,
+          "std": 0.5910526514053345,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "CatBackward0"
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          2,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "refiner": {
+      "input": [
+        {
+          "shape": [
+            1,
+            12,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -1.0,
+          "max": 1.0,
+          "mean": 0.05828404426574707,
+          "std": 0.47142747044563293,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "CatBackward0"
+        }
+      ],
+      "output": {
+        "shape": [
+          1,
+          2,
+          128,
+          128
+        ],
+        "dtype": "torch.float32",
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "finite": true,
+        "requires_grad": true,
+        "grad_fn": "ConvolutionBackward0"
+      }
+    },
+    "ste_quantize": [
+      {
+        "input": [
+          {
+            "shape": [
+              1,
+              128,
+              128
+            ],
+            "dtype": "torch.float32",
+            "min": -3.141279458999634,
+            "max": 3.1410484313964844,
+            "mean": 0.0005700523033738136,
+            "std": 1.810335636138916,
+            "finite": true,
+            "requires_grad": true,
+            "grad_fn": "Atan2Backward0"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            128,
+            128
+          ],
+          "dtype": "torch.float32",
+          "min": -3.1415927410125732,
+          "max": 3.1415927410125732,
+          "mean": 0.0006031249649822712,
+          "std": 1.8103725910186768,
+          "finite": true,
+          "requires_grad": true,
+          "grad_fn": "AddBackward0"
+        }
+      }
+    ]
+  },
+  "history": [
+    {
+      "step": 1,
+      "lr": 0.001,
+      "pearson": 0.661239504814148,
+      "ssim_global": 0.470848023891449,
+      "ssim_local": 0.07839317619800568,
+      "shape_error": 0.5490838885307312,
+      "foreground_error": 0.2625565230846405,
+      "brightness_error": 0.42042601108551025,
+      "crosstalk": 0.006912650540471077,
+      "background_energy": 0.34555891156196594,
+      "foreign_energy": 0.2919062376022339,
+      "multiscale_error": 0.48561108112335205,
+      "edge_error": 0.22771376371383667,
+      "power_error": 0.7054586410522461,
+      "background_error": 0.016233135014772415,
+      "visual_error": 1.233774185180664,
+      "selection_error": 3.1943907737731934,
+      "worst_pearson": 0.47837814688682556,
+      "worst_ssim_local": 0.06478583812713623,
+      "loss": 3.1943907737731934,
+      "gradient_norm_before_clip": 3.5555786312539577,
+      "initializer_gradient_norm": 3.2619469165802,
+      "remaining_gradient_norm": 1.4148648977279663,
+      "phase_gradient_norm": 0.06891338527202606,
+      "parameter_update_l2": {
+        "initializer_head": 0.015999693423509598,
+        "refiner_head": 0.009797904640436172,
+        "plane_logits": 0.005291495006531477
+      }
+    },
+    {
+      "step": 2,
+      "lr": 0.001,
+      "pearson": 0.6846574544906616,
+      "ssim_global": 0.49668169021606445,
+      "ssim_local": 0.08815359324216843,
+      "shape_error": 0.4786233603954315,
+      "foreground_error": 0.2566083073616028,
+      "brightness_error": 0.41396641731262207,
+      "crosstalk": 1.9538441847544163e-05,
+      "background_energy": 0.256625235080719,
+      "foreign_energy": 0.20972687005996704,
+      "multiscale_error": 0.43831393122673035,
+      "edge_error": 0.18809232115745544,
+      "power_error": 0.718313992023468,
+      "background_error": 0.013521036133170128,
+      "visual_error": 1.1635278463363647,
+      "selection_error": 2.970505475997925,
+      "worst_pearson": 0.6394742131233215,
+      "worst_ssim_local": 0.07723308354616165,
+      "loss": 2.970505475997925,
+      "gradient_norm_before_clip": 3.121865363476823,
+      "initializer_gradient_norm": 3.040048837661743,
+      "remaining_gradient_norm": 0.71003258228302,
+      "phase_gradient_norm": 0.08162164688110352,
+      "parameter_update_l2": {
+        "initializer_head": 0.011814907193183899,
+        "refiner_head": 0.006334715522825718,
+        "plane_logits": 0.0043187374249100685
+      }
+    },
+    {
+      "step": 3,
+      "lr": 0.001,
+      "pearson": 0.7101356983184814,
+      "ssim_global": 0.5195472240447998,
+      "ssim_local": 0.08143304288387299,
+      "shape_error": 0.4635795056819916,
+      "foreground_error": 0.22992628812789917,
+      "brightness_error": 0.38866347074508667,
+      "crosstalk": 0.0029905750416219234,
+      "background_energy": 0.22768071293830872,
+      "foreign_energy": 0.18006859719753265,
+      "multiscale_error": 0.43092918395996094,
+      "edge_error": 0.16542458534240723,
+      "power_error": 0.7422128915786743,
+      "background_error": 0.00791412964463234,
+      "visual_error": 1.1171860694885254,
+      "selection_error": 2.836573839187622,
+      "worst_pearson": 0.5806258916854858,
+      "worst_ssim_local": 0.07394153624773026,
+      "loss": 2.836573839187622,
+      "gradient_norm_before_clip": 15.298015485983539,
+      "initializer_gradient_norm": 12.589936256408691,
+      "remaining_gradient_norm": 8.690384864807129,
+      "phase_gradient_norm": 0.07099161297082901,
+      "parameter_update_l2": {
+        "initializer_head": 0.010314658284187317,
+        "refiner_head": 0.004789927043020725,
+        "plane_logits": 0.0033913098741322756
+      }
+    },
+    {
+      "step": 4,
+      "lr": 0.001,
+      "pearson": 0.7047479152679443,
+      "ssim_global": 0.4955154061317444,
+      "ssim_local": 0.08790320158004761,
+      "shape_error": 0.4930254817008972,
+      "foreground_error": 0.23507925868034363,
+      "brightness_error": 0.3959788382053375,
+      "crosstalk": 0.0013386397622525692,
+      "background_energy": 0.27039921283721924,
+      "foreign_energy": 0.21621771156787872,
+      "multiscale_error": 0.4722595810890198,
+      "edge_error": 0.18933112919330597,
+      "power_error": 0.7407064437866211,
+      "background_error": 0.008442876860499382,
+      "visual_error": 1.1648123264312744,
+      "selection_error": 2.9586315155029297,
+      "worst_pearson": 0.6115431785583496,
+      "worst_ssim_local": 0.07976358383893967,
+      "loss": 2.9586315155029297,
+      "gradient_norm_before_clip": 1.2891917571983091,
+      "initializer_gradient_norm": 1.1189277172088623,
+      "remaining_gradient_norm": 0.6403248906135559,
+      "phase_gradient_norm": 0.06973368674516678,
+      "parameter_update_l2": {
+        "initializer_head": 0.008831619285047054,
+        "refiner_head": 0.004496792796999216,
+        "plane_logits": 0.0021419753320515156
+      }
+    },
+    {
+      "step": 5,
+      "lr": 0.001,
+      "pearson": 0.6611116528511047,
+      "ssim_global": 0.47878021001815796,
+      "ssim_local": 0.07795725762844086,
+      "shape_error": 0.5494095683097839,
+      "foreground_error": 0.2589828073978424,
+      "brightness_error": 0.41514822840690613,
+      "crosstalk": 0.006896134000271559,
+      "background_energy": 0.3459419906139374,
+      "foreign_energy": 0.29194343090057373,
+      "multiscale_error": 0.47897112369537354,
+      "edge_error": 0.2326926440000534,
+      "power_error": 0.7040537595748901,
+      "background_error": 0.016280557960271835,
+      "visual_error": 1.2252289056777954,
+      "selection_error": 3.170342445373535,
+      "worst_pearson": 0.4781549572944641,
+      "worst_ssim_local": 0.06463896483182907,
+      "loss": 3.170342445373535,
+      "gradient_norm_before_clip": 1.916983276034374,
+      "initializer_gradient_norm": 1.6682889461517334,
+      "remaining_gradient_norm": 0.9442653656005859,
+      "phase_gradient_norm": 0.07333328574895859,
+      "parameter_update_l2": {
+        "initializer_head": 0.006570238154381514,
+        "refiner_head": 0.004015447571873665,
+        "plane_logits": 0.0027473068330436945
+      }
+    },
+    {
+      "step": 6,
+      "lr": 0.001,
+      "pearson": 0.6839871406555176,
+      "ssim_global": 0.5124559998512268,
+      "ssim_local": 0.0882086306810379,
+      "shape_error": 0.4798141419887543,
+      "foreground_error": 0.24493862688541412,
+      "brightness_error": 0.4007706642150879,
+      "crosstalk": 7.271600225067232e-06,
+      "background_energy": 0.25885209441185,
+      "foreign_energy": 0.21106678247451782,
+      "multiscale_error": 0.42774564027786255,
+      "edge_error": 0.20489948987960815,
+      "power_error": 0.716049075126648,
+      "background_error": 0.014820577576756477,
+      "visual_error": 1.1427605152130127,
+      "selection_error": 2.919173002243042,
+      "worst_pearson": 0.6414697170257568,
+      "worst_ssim_local": 0.07541797310113907,
+      "loss": 2.919173002243042,
+      "gradient_norm_before_clip": 2.533439921925029,
+      "initializer_gradient_norm": 1.9268498420715332,
+      "remaining_gradient_norm": 1.644861102104187,
+      "phase_gradient_norm": 0.08346061408519745,
+      "parameter_update_l2": {
+        "initializer_head": 0.006133825983852148,
+        "refiner_head": 0.0034116420429199934,
+        "plane_logits": 0.0026680065784603357
+      }
+    },
+    {
+      "step": 7,
+      "lr": 0.001,
+      "pearson": 0.7098268270492554,
+      "ssim_global": 0.5157049298286438,
+      "ssim_local": 0.0821528285741806,
+      "shape_error": 0.46387848258018494,
+      "foreground_error": 0.23292230069637299,
+      "brightness_error": 0.39178311824798584,
+      "crosstalk": 0.0029492657631635666,
+      "background_energy": 0.2275817096233368,
+      "foreign_energy": 0.18015240132808685,
+      "multiscale_error": 0.43384233117103577,
+      "edge_error": 0.16313931345939636,
+      "power_error": 0.7481125593185425,
+      "background_error": 0.007787150330841541,
+      "visual_error": 1.1258394718170166,
+      "selection_error": 2.8535358905792236,
+      "worst_pearson": 0.5802332162857056,
+      "worst_ssim_local": 0.07398536056280136,
+      "loss": 2.8535358905792236,
+      "gradient_norm_before_clip": 4.129164763124461,
+      "initializer_gradient_norm": 3.6383228302001953,
+      "remaining_gradient_norm": 1.9525904655456543,
+      "phase_gradient_norm": 0.07030780613422394,
+      "parameter_update_l2": {
+        "initializer_head": 0.006237521301954985,
+        "refiner_head": 0.0030897236429154873,
+        "plane_logits": 0.0023080913815647364
+      }
+    },
+    {
+      "step": 8,
+      "lr": 0.001,
+      "pearson": 0.7049516439437866,
+      "ssim_global": 0.5052775740623474,
+      "ssim_local": 0.0867900550365448,
+      "shape_error": 0.49305880069732666,
+      "foreground_error": 0.22984442114830017,
+      "brightness_error": 0.390779048204422,
+      "crosstalk": 0.0013276863610371947,
+      "background_energy": 0.2715127468109131,
+      "foreign_energy": 0.2172045111656189,
+      "multiscale_error": 0.46478691697120667,
+      "edge_error": 0.19280435144901276,
+      "power_error": 0.7339107990264893,
+      "background_error": 0.008706936612725258,
+      "visual_error": 1.150601863861084,
+      "selection_error": 2.924794912338257,
+      "worst_pearson": 0.6107584834098816,
+      "worst_ssim_local": 0.07893336564302444,
+      "loss": 2.924794912338257,
+      "gradient_norm_before_clip": 2.544042434337933,
+      "initializer_gradient_norm": 2.405139684677124,
+      "remaining_gradient_norm": 0.8291293382644653,
+      "phase_gradient_norm": 0.06956937909126282,
+      "parameter_update_l2": {
+        "initializer_head": 0.006097272504121065,
+        "refiner_head": 0.003266705432906747,
+        "plane_logits": 0.0023136683739721775
+      }
+    }
+  ],
+  "initial": {
+    "pearson": 0.6902769207954407,
+    "ssim_global": 0.49439189583063126,
+    "ssim_local": 0.0842254776507616,
+    "shape_error": 0.4959409460425377,
+    "foreground_error": 0.2473558597266674,
+    "brightness_error": 0.40630294382572174,
+    "crosstalk": 0.002859837912637886,
+    "background_energy": 0.2748923972249031,
+    "foreign_energy": 0.2244555987417698,
+    "multiscale_error": 0.4578601270914078,
+    "edge_error": 0.19069160893559456,
+    "power_error": 0.7264019995927811,
+    "background_error": 0.011472913902252913,
+    "visual_error": 1.1718677282333374,
+    "selection_error": 2.9944754242897034,
+    "worst_pearson": 0.5771946534514427,
+    "worst_ssim_local": 0.07435473427176476,
+    "loss": 2.9944754242897034,
+    "phase_circular_variance": 0.9915723949670792
+  },
+  "initializer_tanh_saturation_first_step": 0.0,
+  "refiner_tanh_saturation_first_step": 0.0,
+  "phase_gradient": {
+    "shape": [
+      1,
+      128,
+      128
+    ],
+    "dtype": "torch.float32",
+    "min": -0.0013750612270087004,
+    "max": 0.0014663091860711575,
+    "mean": -1.7621459846850485e-12,
+    "std": 0.0005384022952057421,
+    "finite": true,
+    "requires_grad": false,
+    "grad_fn": null
+  },
+  "ste_output_gradient": {
+    "shape": [
+      1,
+      128,
+      128
+    ],
+    "dtype": "torch.float32",
+    "min": -0.0013750612270087004,
+    "max": 0.0014663091860711575,
+    "mean": -1.7621459846850485e-12,
+    "std": 0.0005384022952057421,
+    "finite": true,
+    "requires_grad": false,
+    "grad_fn": null
+  },
+  "first_step_zero_gradient_parameters": [
+    "obj_gates.0.net.0.weight",
+    "obj_gates.0.net.0.bias",
+    "obj_gates.0.net.1.weight",
+    "obj_gates.0.net.1.bias",
+    "obj_gates.0.net.3.gamma",
+    "obj_gates.0.net.3.dwconv.weight",
+    "obj_gates.0.net.3.dwconv.bias",
+    "obj_gates.0.net.3.norm.weight",
+    "obj_gates.0.net.3.norm.bias",
+    "obj_gates.0.net.3.pwconv1.weight",
+    "obj_gates.0.net.3.pwconv1.bias",
+    "obj_gates.0.net.3.pwconv2.weight",
+    "obj_gates.0.net.3.pwconv2.bias",
+    "obj_gates.0.net.3.se.1.weight",
+    "obj_gates.0.net.3.se.1.bias",
+    "obj_gates.0.net.3.se.3.weight",
+    "obj_gates.0.net.3.se.3.bias",
+    "obj_gates.1.net.0.weight",
+    "obj_gates.1.net.0.bias",
+    "obj_gates.1.net.1.weight",
+    "obj_gates.1.net.1.bias",
+    "obj_gates.1.net.3.gamma",
+    "obj_gates.1.net.3.dwconv.weight",
+    "obj_gates.1.net.3.dwconv.bias",
+    "obj_gates.1.net.3.norm.weight",
+    "obj_gates.1.net.3.norm.bias",
+    "obj_gates.1.net.3.pwconv1.weight",
+    "obj_gates.1.net.3.pwconv1.bias",
+    "obj_gates.1.net.3.pwconv2.weight",
+    "obj_gates.1.net.3.pwconv2.bias",
+    "obj_gates.1.net.3.se.1.weight",
+    "obj_gates.1.net.3.se.1.bias",
+    "obj_gates.1.net.3.se.3.weight",
+    "obj_gates.1.net.3.se.3.bias",
+    "obj_gates.2.net.0.weight",
+    "obj_gates.2.net.0.bias",
+    "obj_gates.2.net.1.weight",
+    "obj_gates.2.net.1.bias",
+    "obj_gates.2.net.3.gamma",
+    "obj_gates.2.net.3.dwconv.weight",
+    "obj_gates.2.net.3.dwconv.bias",
+    "obj_gates.2.net.3.norm.weight",
+    "obj_gates.2.net.3.norm.bias",
+    "obj_gates.2.net.3.pwconv1.weight",
+    "obj_gates.2.net.3.pwconv1.bias",
+    "obj_gates.2.net.3.pwconv2.weight",
+    "obj_gates.2.net.3.pwconv2.bias",
+    "obj_gates.2.net.3.se.1.weight",
+    "obj_gates.2.net.3.se.1.bias",
+    "obj_gates.2.net.3.se.3.weight",
+    "obj_gates.2.net.3.se.3.bias",
+    "obj_gates.3.net.0.weight",
+    "obj_gates.3.net.0.bias",
+    "obj_gates.3.net.1.weight",
+    "obj_gates.3.net.1.bias",
+    "obj_gates.3.net.3.gamma",
+    "obj_gates.3.net.3.dwconv.weight",
+    "obj_gates.3.net.3.dwconv.bias",
+    "obj_gates.3.net.3.norm.weight",
+    "obj_gates.3.net.3.norm.bias",
+    "obj_gates.3.net.3.pwconv1.weight",
+    "obj_gates.3.net.3.pwconv1.bias",
+    "obj_gates.3.net.3.pwconv2.weight",
+    "obj_gates.3.net.3.pwconv2.bias",
+    "obj_gates.3.net.3.se.1.weight",
+    "obj_gates.3.net.3.se.1.bias",
+    "obj_gates.3.net.3.se.3.weight",
+    "obj_gates.3.net.3.se.3.bias",
+    "obj_gates.4.net.0.weight",
+    "obj_gates.4.net.0.bias",
+    "obj_gates.4.net.1.weight",
+    "obj_gates.4.net.1.bias",
+    "obj_gates.4.net.3.gamma",
+    "obj_gates.4.net.3.dwconv.weight",
+    "obj_gates.4.net.3.dwconv.bias",
+    "obj_gates.4.net.3.norm.weight",
+    "obj_gates.4.net.3.norm.bias",
+    "obj_gates.4.net.3.pwconv1.weight",
+    "obj_gates.4.net.3.pwconv1.bias",
+    "obj_gates.4.net.3.pwconv2.weight",
+    "obj_gates.4.net.3.pwconv2.bias",
+    "obj_gates.4.net.3.se.1.weight",
+    "obj_gates.4.net.3.se.1.bias",
+    "obj_gates.4.net.3.se.3.weight",
+    "obj_gates.4.net.3.se.3.bias",
+    "obj_gates.5.net.0.weight",
+    "obj_gates.5.net.0.bias",
+    "obj_gates.5.net.1.weight",
+    "obj_gates.5.net.1.bias",
+    "obj_gates.5.net.3.gamma",
+    "obj_gates.5.net.3.dwconv.weight",
+    "obj_gates.5.net.3.dwconv.bias",
+    "obj_gates.5.net.3.norm.weight",
+    "obj_gates.5.net.3.norm.bias",
+    "obj_gates.5.net.3.pwconv1.weight",
+    "obj_gates.5.net.3.pwconv1.bias",
+    "obj_gates.5.net.3.pwconv2.weight",
+    "obj_gates.5.net.3.pwconv2.bias",
+    "obj_gates.5.net.3.se.1.weight",
+    "obj_gates.5.net.3.se.1.bias",
+    "obj_gates.5.net.3.se.3.weight",
+    "obj_gates.5.net.3.se.3.bias",
+    "slm_blocks.0.0.weight",
+    "slm_blocks.0.0.bias",
+    "slm_blocks.0.1.weight",
+    "slm_blocks.0.1.bias",
+    "slm_blocks.0.3.gamma",
+    "slm_blocks.0.3.dwconv.weight",
+    "slm_blocks.0.3.dwconv.bias",
+    "slm_blocks.0.3.norm.weight",
+    "slm_blocks.0.3.norm.bias",
+    "slm_blocks.0.3.pwconv1.weight",
+    "slm_blocks.0.3.pwconv1.bias",
+    "slm_blocks.0.3.pwconv2.weight",
+    "slm_blocks.0.3.pwconv2.bias",
+    "slm_blocks.0.3.se.1.weight",
+    "slm_blocks.0.3.se.1.bias",
+    "slm_blocks.0.3.se.3.weight",
+    "slm_blocks.0.3.se.3.bias",
+    "slm_blocks.1.0.weight",
+    "slm_blocks.1.0.bias",
+    "slm_blocks.1.1.weight",
+    "slm_blocks.1.1.bias",
+    "slm_blocks.1.3.gamma",
+    "slm_blocks.1.3.dwconv.weight",
+    "slm_blocks.1.3.dwconv.bias",
+    "slm_blocks.1.3.norm.weight",
+    "slm_blocks.1.3.norm.bias",
+    "slm_blocks.1.3.pwconv1.weight",
+    "slm_blocks.1.3.pwconv1.bias",
+    "slm_blocks.1.3.pwconv2.weight",
+    "slm_blocks.1.3.pwconv2.bias",
+    "slm_blocks.1.3.se.1.weight",
+    "slm_blocks.1.3.se.1.bias",
+    "slm_blocks.1.3.se.3.weight",
+    "slm_blocks.1.3.se.3.bias",
+    "slm_blocks.2.0.weight",
+    "slm_blocks.2.0.bias",
+    "slm_blocks.2.1.weight",
+    "slm_blocks.2.1.bias",
+    "slm_blocks.2.3.gamma",
+    "slm_blocks.2.3.dwconv.weight",
+    "slm_blocks.2.3.dwconv.bias",
+    "slm_blocks.2.3.norm.weight",
+    "slm_blocks.2.3.norm.bias",
+    "slm_blocks.2.3.pwconv1.weight",
+    "slm_blocks.2.3.pwconv1.bias",
+    "slm_blocks.2.3.pwconv2.weight",
+    "slm_blocks.2.3.pwconv2.bias",
+    "slm_blocks.2.3.se.1.weight",
+    "slm_blocks.2.3.se.1.bias",
+    "slm_blocks.2.3.se.3.weight",
+    "slm_blocks.2.3.se.3.bias",
+    "slm_blocks.3.0.weight",
+    "slm_blocks.3.0.bias",
+    "slm_blocks.3.1.weight",
+    "slm_blocks.3.1.bias",
+    "slm_blocks.3.3.gamma",
+    "slm_blocks.3.3.dwconv.weight",
+    "slm_blocks.3.3.dwconv.bias",
+    "slm_blocks.3.3.norm.weight",
+    "slm_blocks.3.3.norm.bias",
+    "slm_blocks.3.3.pwconv1.weight",
+    "slm_blocks.3.3.pwconv1.bias",
+    "slm_blocks.3.3.pwconv2.weight",
+    "slm_blocks.3.3.pwconv2.bias",
+    "slm_blocks.3.3.se.1.weight",
+    "slm_blocks.3.3.se.1.bias",
+    "slm_blocks.3.3.se.3.weight",
+    "slm_blocks.3.3.se.3.bias",
+    "slm_blocks.4.0.weight",
+    "slm_blocks.4.0.bias",
+    "slm_blocks.4.1.weight",
+    "slm_blocks.4.1.bias",
+    "slm_blocks.4.3.gamma",
+    "slm_blocks.4.3.dwconv.weight",
+    "slm_blocks.4.3.dwconv.bias",
+    "slm_blocks.4.3.norm.weight",
+    "slm_blocks.4.3.norm.bias",
+    "slm_blocks.4.3.pwconv1.weight",
+    "slm_blocks.4.3.pwconv1.bias",
+    "slm_blocks.4.3.pwconv2.weight",
+    "slm_blocks.4.3.pwconv2.bias",
+    "slm_blocks.4.3.se.1.weight",
+    "slm_blocks.4.3.se.1.bias",
+    "slm_blocks.4.3.se.3.weight",
+    "slm_blocks.4.3.se.3.bias",
+    "slm_blocks.5.0.weight",
+    "slm_blocks.5.0.bias",
+    "slm_blocks.5.1.weight",
+    "slm_blocks.5.1.bias",
+    "slm_blocks.5.3.gamma",
+    "slm_blocks.5.3.dwconv.weight",
+    "slm_blocks.5.3.dwconv.bias",
+    "slm_blocks.5.3.norm.weight",
+    "slm_blocks.5.3.norm.bias",
+    "slm_blocks.5.3.pwconv1.weight",
+    "slm_blocks.5.3.pwconv1.bias",
+    "slm_blocks.5.3.pwconv2.weight",
+    "slm_blocks.5.3.pwconv2.bias",
+    "slm_blocks.5.3.se.1.weight",
+    "slm_blocks.5.3.se.1.bias",
+    "slm_blocks.5.3.se.3.weight",
+    "slm_blocks.5.3.se.3.bias",
+    "refiner.stem.0.weight",
+    "refiner.stem.0.bias",
+    "refiner.stem.1.weight",
+    "refiner.stem.1.bias",
+    "refiner.stem.3.gamma",
+    "refiner.stem.3.dwconv.weight",
+    "refiner.stem.3.dwconv.bias",
+    "refiner.stem.3.norm.weight",
+    "refiner.stem.3.norm.bias",
+    "refiner.stem.3.pwconv1.weight",
+    "refiner.stem.3.pwconv1.bias",
+    "refiner.stem.3.pwconv2.weight",
+    "refiner.stem.3.pwconv2.bias",
+    "refiner.stem.3.se.1.weight",
+    "refiner.stem.3.se.1.bias",
+    "refiner.stem.3.se.3.weight",
+    "refiner.stem.3.se.3.bias",
+    "refiner.stem.4.gamma",
+    "refiner.stem.4.dwconv.weight",
+    "refiner.stem.4.dwconv.bias",
+    "refiner.stem.4.norm.weight",
+    "refiner.stem.4.norm.bias",
+    "refiner.stem.4.pwconv1.weight",
+    "refiner.stem.4.pwconv1.bias",
+    "refiner.stem.4.pwconv2.weight",
+    "refiner.stem.4.pwconv2.bias",
+    "refiner.stem.4.se.1.weight",
+    "refiner.stem.4.se.1.bias",
+    "refiner.stem.4.se.3.weight",
+    "refiner.stem.4.se.3.bias",
+    "refiner.down1.0.weight",
+    "refiner.down1.0.bias",
+    "refiner.down1.1.weight",
+    "refiner.down1.1.bias",
+    "refiner.down1.3.gamma",
+    "refiner.down1.3.dwconv.weight",
+    "refiner.down1.3.dwconv.bias",
+    "refiner.down1.3.norm.weight",
+    "refiner.down1.3.norm.bias",
+    "refiner.down1.3.pwconv1.weight",
+    "refiner.down1.3.pwconv1.bias",
+    "refiner.down1.3.pwconv2.weight",
+    "refiner.down1.3.pwconv2.bias",
+    "refiner.down1.3.se.1.weight",
+    "refiner.down1.3.se.1.bias",
+    "refiner.down1.3.se.3.weight",
+    "refiner.down1.3.se.3.bias",
+    "refiner.down2.0.weight",
+    "refiner.down2.0.bias",
+    "refiner.down2.1.weight",
+    "refiner.down2.1.bias",
+    "refiner.down2.3.gamma",
+    "refiner.down2.3.dwconv.weight",
+    "refiner.down2.3.dwconv.bias",
+    "refiner.down2.3.norm.weight",
+    "refiner.down2.3.norm.bias",
+    "refiner.down2.3.pwconv1.weight",
+    "refiner.down2.3.pwconv1.bias",
+    "refiner.down2.3.pwconv2.weight",
+    "refiner.down2.3.pwconv2.bias",
+    "refiner.down2.3.se.1.weight",
+    "refiner.down2.3.se.1.bias",
+    "refiner.down2.3.se.3.weight",
+    "refiner.down2.3.se.3.bias",
+    "refiner.spectral.weights_real",
+    "refiner.spectral.weights_imag",
+    "refiner.bottleneck.0.gamma",
+    "refiner.bottleneck.0.dwconv.weight",
+    "refiner.bottleneck.0.dwconv.bias",
+    "refiner.bottleneck.0.norm.weight",
+    "refiner.bottleneck.0.norm.bias",
+    "refiner.bottleneck.0.pwconv1.weight",
+    "refiner.bottleneck.0.pwconv1.bias",
+    "refiner.bottleneck.0.pwconv2.weight",
+    "refiner.bottleneck.0.pwconv2.bias",
+    "refiner.bottleneck.0.se.1.weight",
+    "refiner.bottleneck.0.se.1.bias",
+    "refiner.bottleneck.0.se.3.weight",
+    "refiner.bottleneck.0.se.3.bias",
+    "refiner.bottleneck.1.gamma",
+    "refiner.bottleneck.1.dwconv.weight",
+    "refiner.bottleneck.1.dwconv.bias",
+    "refiner.bottleneck.1.norm.weight",
+    "refiner.bottleneck.1.norm.bias",
+    "refiner.bottleneck.1.pwconv1.weight",
+    "refiner.bottleneck.1.pwconv1.bias",
+    "refiner.bottleneck.1.pwconv2.weight",
+    "refiner.bottleneck.1.pwconv2.bias",
+    "refiner.bottleneck.1.se.1.weight",
+    "refiner.bottleneck.1.se.1.bias",
+    "refiner.bottleneck.1.se.3.weight",
+    "refiner.bottleneck.1.se.3.bias",
+    "refiner.up2.weight",
+    "refiner.up2.bias",
+    "refiner.dec2.0.weight",
+    "refiner.dec2.0.bias",
+    "refiner.dec2.1.weight",
+    "refiner.dec2.1.bias",
+    "refiner.dec2.3.gamma",
+    "refiner.dec2.3.dwconv.weight",
+    "refiner.dec2.3.dwconv.bias",
+    "refiner.dec2.3.norm.weight",
+    "refiner.dec2.3.norm.bias",
+    "refiner.dec2.3.pwconv1.weight",
+    "refiner.dec2.3.pwconv1.bias",
+    "refiner.dec2.3.pwconv2.weight",
+    "refiner.dec2.3.pwconv2.bias",
+    "refiner.dec2.3.se.1.weight",
+    "refiner.dec2.3.se.1.bias",
+    "refiner.dec2.3.se.3.weight",
+    "refiner.dec2.3.se.3.bias",
+    "refiner.up1.weight",
+    "refiner.up1.bias",
+    "refiner.dec1.0.weight",
+    "refiner.dec1.0.bias",
+    "refiner.dec1.1.weight",
+    "refiner.dec1.1.bias",
+    "refiner.dec1.3.gamma",
+    "refiner.dec1.3.dwconv.weight",
+    "refiner.dec1.3.dwconv.bias",
+    "refiner.dec1.3.norm.weight",
+    "refiner.dec1.3.norm.bias",
+    "refiner.dec1.3.pwconv1.weight",
+    "refiner.dec1.3.pwconv1.bias",
+    "refiner.dec1.3.pwconv2.weight",
+    "refiner.dec1.3.pwconv2.bias",
+    "refiner.dec1.3.se.1.weight",
+    "refiner.dec1.3.se.1.bias",
+    "refiner.dec1.3.se.3.weight",
+    "refiner.dec1.3.se.3.bias",
+    "refiner.dec1.4.gamma",
+    "refiner.dec1.4.dwconv.weight",
+    "refiner.dec1.4.dwconv.bias",
+    "refiner.dec1.4.norm.weight",
+    "refiner.dec1.4.norm.bias",
+    "refiner.dec1.4.pwconv1.weight",
+    "refiner.dec1.4.pwconv1.bias",
+    "refiner.dec1.4.pwconv2.weight",
+    "refiner.dec1.4.pwconv2.bias",
+    "refiner.dec1.4.se.1.weight",
+    "refiner.dec1.4.se.1.bias",
+    "refiner.dec1.4.se.3.weight",
+    "refiner.dec1.4.se.3.bias"
+  ],
+  "elapsed_update_seconds": 45.70662856799754,
+  "completed_steps": 8,
+  "parameter_change_from_start_l2": {
+    "initializer_head": 0.05369798466563225,
+    "refiner_head": 0.027081171050667763,
+    "plane_logits": 0.021064311265945435
+  },
+  "final": {
+    "pearson": 0.6900615096092224,
+    "ssim_global": 0.5065854266285896,
+    "ssim_local": 0.08365552313625813,
+    "shape_error": 0.4966724291443825,
+    "foreground_error": 0.23846131935715675,
+    "brightness_error": 0.3961480185389519,
+    "crosstalk": 0.00277810070929263,
+    "background_energy": 0.27695079520344734,
+    "foreign_energy": 0.22575223073363304,
+    "multiscale_error": 0.44897713512182236,
+    "edge_error": 0.2022862248122692,
+    "power_error": 0.721561998128891,
+    "background_error": 0.012268675724044442,
+    "visual_error": 1.1539106369018555,
+    "selection_error": 2.952452063560486,
+    "worst_pearson": 0.5781078040599823,
+    "worst_ssim_local": 0.07295381277799606,
+    "loss": 2.952452063560486,
+    "phase_circular_variance": 0.9861927628517151
+  }
+}

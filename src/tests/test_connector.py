@@ -27,7 +27,9 @@ def _make_valid_target_png(path: Path, seed: int) -> None:
     im = Image.new("L", (128, 128), 0)
     draw = ImageDraw.Draw(im)
     offset = (seed * 7) % 40
-    draw.ellipse((24 + offset, 24 + offset, 70 + offset, 70 + offset), fill=200 + (seed % 55))
+    draw.ellipse(
+        (24 + offset, 24 + offset, 70 + offset, 70 + offset), fill=200 + (seed % 55)
+    )
     im.save(path, format="PNG")
 
 
@@ -121,7 +123,10 @@ def test_load_manifest_rejects_invalid_data(mock_anya_dataset: Path) -> None:
     # Попытка подсунуть картинку из previews/
     bad_preview = dict(raw)
     bad_sample = dict(raw["samples"][0])
-    bad_sample["images"] = ["previews/contact_sheet_01.png", *raw["samples"][0]["images"][1:]]
+    bad_sample["images"] = [
+        "previews/contact_sheet_01.png",
+        *raw["samples"][0]["images"][1:],
+    ]
     bad_preview["samples"] = [bad_sample]
     bad_path = mock_anya_dataset.parent / "bad_manifest.json"
     bad_path.write_text(json.dumps(bad_preview), encoding="utf-8")
@@ -132,10 +137,14 @@ def test_load_manifest_rejects_invalid_data(mock_anya_dataset: Path) -> None:
 
 # 3. Проверка режимов train_smoke (8 четвёрок) и v1 (полный сплит)
 def test_dataloaders_smoke_and_v1(mock_anya_dataset: Path) -> None:
-    smoke_loaders = build_dataloaders(mock_anya_dataset, batch_size=4, num_workers=0, mode="train_smoke")
+    smoke_loaders = build_dataloaders(
+        mock_anya_dataset, batch_size=4, num_workers=0, mode="train_smoke"
+    )
     assert len(smoke_loaders["train"].dataset) == 8
 
-    v1_loaders = build_dataloaders(mock_anya_dataset, batch_size=4, num_workers=0, mode="v1")
+    v1_loaders = build_dataloaders(
+        mock_anya_dataset, batch_size=4, num_workers=0, mode="v1"
+    )
     assert len(v1_loaders["train"].dataset) == 10
     assert len(v1_loaders["validation"].dataset) == 2
     assert len(v1_loaders["test"].dataset) == 2
@@ -151,7 +160,9 @@ def test_dataloaders_smoke_and_v1(mock_anya_dataset: Path) -> None:
 # 4. Проверка правил аугментации: запрещены на val/test, не меняют файлы на диске
 def test_augmentations_safety(mock_anya_dataset: Path) -> None:
     with pytest.raises(ValueError, match="ТОЛЬКО для split='train'"):
-        ManifestQuartetDataset(mock_anya_dataset, split="validation", augment_channel_shuffle=True)
+        ManifestQuartetDataset(
+            mock_anya_dataset, split="validation", augment_channel_shuffle=True
+        )
 
     manifest_hash_before = hashlib.sha256(mock_anya_dataset.read_bytes()).hexdigest()
     ds = ManifestQuartetDataset(
@@ -168,13 +179,18 @@ def test_augmentations_safety(mock_anya_dataset: Path) -> None:
     assert sid.startswith("train_")
 
     # Файлы на диске и манифест должны остаться нетронутыми
-    assert hashlib.sha256(mock_anya_dataset.read_bytes()).hexdigest() == manifest_hash_before
+    assert (
+        hashlib.sha256(mock_anya_dataset.read_bytes()).hexdigest()
+        == manifest_hash_before
+    )
     assert hashlib.sha256(img_path.read_bytes()).hexdigest() == img_hash_before
 
 
 # 5. Проверка связки Модель -> forward_physics_loss -> backward() (обучение)
 def test_model_training_step_with_connector(mock_anya_dataset: Path) -> None:
-    loaders = build_dataloaders(mock_anya_dataset, batch_size=2, num_workers=0, mode="train_smoke")
+    loaders = build_dataloaders(
+        mock_anya_dataset, batch_size=2, num_workers=0, mode="train_smoke"
+    )
     targets, _ = next(iter(loaders["train"]))
 
     net = DummyDOENet()
@@ -194,12 +210,18 @@ def test_model_training_step_with_connector(mock_anya_dataset: Path) -> None:
 
 
 # 6. Проверка экспорта предсказаний и совместимости с CLI `doe-eval evaluate`
-def test_export_predictions_and_cli_eval(mock_anya_dataset: Path, tmp_path: Path) -> None:
-    loaders = build_dataloaders(mock_anya_dataset, batch_size=2, num_workers=0, mode="v1")
+def test_export_predictions_and_cli_eval(
+    mock_anya_dataset: Path, tmp_path: Path
+) -> None:
+    loaders = build_dataloaders(
+        mock_anya_dataset, batch_size=2, num_workers=0, mode="v1"
+    )
     net = DummyDOENet()
     preds_dir = tmp_path / "preds_val"
 
-    saved = export_split_predictions(net, loaders["validation"], preds_dir, torch.device("cpu"))
+    saved = export_split_predictions(
+        net, loaders["validation"], preds_dir, torch.device("cpu")
+    )
     assert len(saved) == 2
     assert (preds_dir / "validation_000001.png").is_file()
     assert (preds_dir / "validation_000002.png").is_file()
@@ -228,7 +250,9 @@ def test_export_predictions_and_cli_eval(mock_anya_dataset: Path, tmp_path: Path
 
 
 # 7. Автоматическая проверка реального датасета Ани (если папка data/ уже лежит в проекте)
-@pytest.mark.skipif(not DEFAULT_MANIFEST.is_file(), reason="Реальный датасет не установлен")
+@pytest.mark.skipif(
+    not DEFAULT_MANIFEST.is_file(), reason="Реальный датасет не установлен"
+)
 def test_real_anya_dataset_if_present() -> None:
     d = load_manifest(DEFAULT_MANIFEST, verify_images=True)
     assert d.report.counts["diagnostic"] == 1
@@ -238,13 +262,58 @@ def test_real_anya_dataset_if_present() -> None:
     assert d.report.warnings == []
 
 
-def test_simulated_exchange_quartets_keep_plane_order(mock_anya_dataset: Path) -> None:
+@pytest.mark.parametrize("kind", ["exchange_A", "physical_forward"])
+def test_simulated_exchange_quartets_keep_plane_order(
+    mock_anya_dataset: Path, kind
+) -> None:
     raw = json.loads(mock_anya_dataset.read_text())
-    for record in raw['samples']:
-        if record['split'] == 'train':
-            record['params'] = {'exchange': {'kind': 'A'}}
+    for record in raw["samples"]:
+        if record["split"] == "train":
+            record["params"] = (
+                {"exchange": {"kind": "A"}}
+                if kind == "exchange_A"
+                else {"kind": "physical_forward"}
+            )
     mock_anya_dataset.write_text(json.dumps(raw))
-    plain = ManifestQuartetDataset(mock_anya_dataset, split='train')
-    shuffled = ManifestQuartetDataset(mock_anya_dataset, split='train', augment_channel_shuffle=True)
+    plain = ManifestQuartetDataset(mock_anya_dataset, split="train")
+    shuffled = ManifestQuartetDataset(
+        mock_anya_dataset,
+        split="train",
+        augment_channel_shuffle=True,
+        augment_dihedral=True,
+    )
     for _ in range(12):
         torch.testing.assert_close(shuffled[0][0], plain[0][0])
+
+
+def test_validation_reports_soft_groups_separately(mock_anya_dataset: Path) -> None:
+    from torch.utils.data import DataLoader
+
+    from model.train import evaluate_loader
+
+    raw = json.loads(mock_anya_dataset.read_text())
+    validation = [r for r in raw["samples"] if r["split"] == "validation"]
+    for record, group in zip(validation, ["physical_forward", "soft_independent"]):
+        record["params"]["kind"] = group
+    mock_anya_dataset.write_text(json.dumps(raw))
+    dataset = ManifestQuartetDataset(mock_anya_dataset, split="validation")
+
+    class Fixed(torch.nn.Module):
+        def forward(self, targets):
+            return torch.zeros(targets.shape[0], targets.shape[-2], targets.shape[-1])
+
+    full = evaluate_loader(
+        Fixed(), DataLoader(dataset, batch_size=2), torch.device("cpu")
+    )
+    for i, group in enumerate(["physical_forward", "soft_independent"]):
+        target, sid = dataset[i]
+        expected = evaluate_loader(
+            Fixed(), [(target[None], [sid])], torch.device("cpu")
+        )
+        assert full["groups"][group]["samples"] == 1
+        assert full["groups"][group]["pearson"] == pytest.approx(
+            expected["pearson"], abs=1e-6
+        )
+        assert full["groups"][group]["ssim_global"] == pytest.approx(
+            expected["ssim_global"], abs=1e-6
+        )

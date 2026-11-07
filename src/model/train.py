@@ -43,6 +43,9 @@ def evaluate_loader(
     device: torch.device,
 ) -> dict[str, float]:
     model.eval()
+    records = getattr(getattr(loader, "dataset", None), "samples", [])
+    sample_groups = {record.sample_id: record.params.get("kind") for record in records}
+    grouped = {}
     total_loss = 0.0
     total_pearson = 0.0
     total_ssim = 0.0
@@ -66,7 +69,7 @@ def evaluate_loader(
     }
     total_samples = 0
 
-    for targets, _ in loader:
+    for targets, sample_ids in loader:
         bsz = targets.shape[0]
         targets = targets.to(device, non_blocking=True)
         pred_phase = model(targets)
@@ -75,6 +78,30 @@ def evaluate_loader(
             raise FloatingPointError(
                 "Неконечная метрика на validation; checkpoint не сохраняется"
             )
+        for group in ("physical_forward", "soft_independent"):
+            indices = [
+                i for i, sid in enumerate(sample_ids) if sample_groups.get(sid) == group
+            ]
+            if not indices:
+                continue
+            group_metrics = (
+                metrics
+                if len(indices) == bsz
+                else compute_sota_physics_loss(pred_phase[indices], targets[indices])[2]
+            )
+            entry = grouped.setdefault(
+                group,
+                {
+                    "samples": 0,
+                    "pearson": 0.0,
+                    "ssim_global": 0.0,
+                    "ssim_local": 0.0,
+                    "loss": 0.0,
+                },
+            )
+            entry["samples"] += len(indices)
+            for key in ("pearson", "ssim_global", "ssim_local", "loss"):
+                entry[key] += float(group_metrics[key]) * len(indices)
 
         total_loss += float(metrics["loss"].item()) * bsz
         total_pearson += float(metrics["pearson"].item()) * bsz
@@ -92,6 +119,9 @@ def evaluate_loader(
     if total_samples == 0:
         raise ValueError("Нельзя оценить пустую выборку")
     denom = total_samples
+    for entry in grouped.values():
+        for key in ("pearson", "ssim_global", "ssim_local", "loss"):
+            entry[key] /= entry["samples"]
     return {
         "loss": total_loss / denom,
         "pearson": total_pearson / denom,
@@ -103,6 +133,7 @@ def evaluate_loader(
         "worst_pearson": total_worst_pearson / denom,
         "worst_ssim_skimage": total_worst_ssim / denom,
         "score": -total_selection / denom,
+        "groups": grouped,
         **{key: value / denom for key, value in fidelity_totals.items()},
     }
 
@@ -242,6 +273,13 @@ def train_model(
         pin_memory=(device.type == "cuda"),
         seed=seed,
     )
+    print(
+        f"[Data] Manifest: {manifest_p.resolve()} | "
+        + " ".join(
+            f"{split}={len(loader.dataset)}" for split, loader in loaders.items()
+        ),
+        flush=True,
+    )
 
     model = initialize_training_model(unroll_steps, base_dim, seed, init_checkpoint).to(
         device
@@ -302,6 +340,7 @@ def train_model(
                 "val_metrics": val_metrics,
                 "seed": seed,
                 "manifest_sha256": hashlib.sha256(manifest_p.read_bytes()).hexdigest(),
+                "manifest_path": str(manifest_p.resolve()),
                 "metric_weights": METRIC_WEIGHTS,
                 "primary_ssim": PRIMARY_SSIM,
                 "loss_version": LOSS_VERSION,
@@ -427,6 +466,7 @@ def train_model(
             "val_ssim_global": val_metrics["ssim_global"],
             "val_ssim_skimage": val_metrics["ssim_skimage"],
             "val_score": val_metrics["score"],
+            "val_groups": val_metrics.get("groups", {}),
             "val_shape_error": val_metrics["shape_error"],
             "val_visual_error": val_metrics["visual_error"],
             "val_selection_error": val_metrics["selection_error"],
@@ -492,6 +532,12 @@ def train_model(
             f"Gain: {row['visual_gain_from_initial']:+.4f}",
             flush=True,
         )
+        for group, values in val_metrics.get("groups", {}).items():
+            print(
+                f"  Val {group} n={values['samples']} | P: {values['pearson']:.4f} "
+                f"SSIM global: {values['ssim_global']:.4f} SSIM local 7x7: {values['ssim_local']:.4f}",
+                flush=True,
+            )
 
     if best_state is not None:
         model.load_state_dict(best_state)

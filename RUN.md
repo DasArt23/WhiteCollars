@@ -3,6 +3,49 @@
 Все команды выполняются **из корня репозитория**. Основной сценарий — Linux x86_64
 и Tesla V100. Полный цикл обучения запускаете вы; проверки его не запускают.
 
+## Soft600: подготовка и короткая диагностика
+
+Архив `src/dataset/WhiteCollars_Soft600_dataset.zip` включён в репозиторий.
+Распаковка с проверкой SHA256, без обучения:
+
+```bash
+uv run --extra v100 --frozen python -m dataset.prepare_soft600
+```
+
+Основной путь — `src/dataset/data_soft600/manifest.json`: 600 train, 100 validation,
+100 test, 1 diagnostic. В train 240 physical_forward и 360 soft_independent.
+Контрольные фазы лежат отдельно и не подаются в сеть. Для physical_forward
+отключены перестановки каналов и геометрические аугментации. Validation теперь
+показывает обе группы отдельно; смешанное среднее не заменяет эти строки.
+
+Добавление только 600 TRAIN к прежним 4608 (512 из архива ZAKHAR уже сохранены):
+
+```bash
+uv run --extra v100 --frozen python -m dataset.prepare_soft600 \
+  --merge-base build/data_train4608/manifest.json --out build/data_train5208
+```
+
+Новый manifest: `build/data_train5208/manifest.json`. Старые validation/test
+сохранены; новые находятся отдельно в `build/data_train5208/soft600/manifest.json`.
+Результаты выполненных коротких запусков: `reports/soft600_diagnostic/`.
+
+Быстрая проверка обучения на одном TRAIN-примере (не полный train):
+
+```bash
+uv run --extra v100 --frozen python scripts/diagnose_training.py \
+  --group physical_forward --count 1 --steps 30 --seconds 90 \
+  --device cuda --out build/diagnostic_physical_one
+```
+
+Для 4 примеров задайте `--count 4`; независимую группу проверяйте отдельным запуском
+с `--group soft_independent`. По умолчанию используется новая сеть 6/48 и постоянный
+LR=0.001 для изоляции проверки градиентов. Чтобы проверить реальные обученные веса,
+добавьте `--checkpoint checkpoints/train4608_v5/best_model.pt`.
+В `report.json` сохраняются явно названные SSIM global/local 7×7, LR, нормы
+градиентов, изменения весов, shape/min/max/mean промежуточных тензоров и метаданные.
+Предельное время проверяется между шагами, поэтому один последний шаг может его
+немного превысить. Ни контрольная фаза, ни test не используются в этом обучении.
+
 ## Актуальная цель: Pearson + global SSIM, global-fidelity-v5
 
 В v4 основной SSIM в loss и выборе checkpoint был оконным. По уточнению пользователя
@@ -26,7 +69,8 @@ uv run --extra v100 --frozen project train \
 ```
 
 `Guard` теперь относится к Pearson и **global SSIM**. Оконный SSIM остаётся в журнале.
-Обучение v5 не запускалось; по его эффекту на всей validation результатов ещё нет.
+Полное обучение v5 не запускалось; короткие прогоны Soft600 описаны выше,
+результатов новой сети на всей validation ещё нет.
 Проверка необходимого физического условия, без оптимизации или обучения:
 
 ```bash
