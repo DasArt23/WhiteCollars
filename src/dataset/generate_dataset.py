@@ -2,6 +2,7 @@
 import argparse
 from collections import Counter
 import hashlib
+from itertools import combinations
 import json
 import math
 from pathlib import Path
@@ -11,10 +12,13 @@ import shutil
 import PIL
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageStat
 
-VERSION = '0.2.0'
+VERSION = '0.3.0'
+LEGACY_VERSION = '0.2.0'
 SIZE, SCALE = 128, 4
 Z = [24.1, 25.3, 26.5, 27.7]
 FAMILIES = ['geometry', 'digit', 'letter', 'icon', 'strokes', 'composition']
+TRAIN_COMBINATIONS = tuple(combinations(FAMILIES, 4))
+HOLDOUT_FAMILY = 'curves'
 GEOMETRY = ['circle', 'ring', 'rectangle', 'triangle', 'cross', 'ellipse',
             'diamond', 'star', 'pentagon', 'spots']
 ICONS = ['house', 'tree', 'heart', 'arrow', 'cup', 'flag', 'sun', 'cloud', 'boat']
@@ -97,6 +101,13 @@ def primitive(name, rng):
         b = d.textbbox((0, 0), glyph, font=font)
         d.text(((256-(b[2]-b[0]))/2-b[0], (256-(b[3]-b[1]))/2-b[1]),
                glyph, fill=255, font=font)
+    elif name == HOLDOUT_FAMILY:
+        waves = rng.uniform(0.75, 1.75)
+        phase = rng.uniform(0, 2 * math.pi)
+        amplitude = rng.uniform(36, 72)
+        points = [(x, 128 + amplitude * math.sin(phase + waves * 2 * math.pi * (x - 26) / 204))
+                  for x in range(26, 231, 4)]
+        d.line(points, fill=255, width=width, joint='curve')
     elif name == 'strokes':
         pts = [(rng.randint(35, 220), rng.randint(35, 220))
                for _ in range(rng.randint(3, 6))]
@@ -109,7 +120,7 @@ def primitive(name, rng):
     return im
 
 
-def target(family, seed):
+def target(family, seed, *, expanded=False):
     rng = random.Random(seed)
     if family == 'geometry':
         names = [rng.choice(GEOMETRY)]
@@ -119,8 +130,8 @@ def target(family, seed):
         names = ['glyph:' + rng.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')]
     elif family == 'icon':
         names = [rng.choice(ICONS)]
-    elif family == 'strokes':
-        names = ['strokes']
+    elif family in ('strokes', HOLDOUT_FAMILY):
+        names = [family]
     else:
         names = rng.sample(GEOMETRY + ICONS, rng.randint(2, 3))
     canvas = Image.new('L', (SIZE*SCALE, SIZE*SCALE))
@@ -130,14 +141,19 @@ def target(family, seed):
         angle = rng.uniform(-22, 22) if name.startswith('glyph:') else rng.uniform(-180, 180)
         tile = tile.rotate(angle, resample=Image.Resampling.BICUBIC, expand=True)
         tile = tile.crop(tile.getbbox())
-        extent = rng.randint(52, 94) if len(names) == 1 else rng.randint(28, 53)
+        if expanded:
+            extent = rng.randint(82, 105) if len(names) == 1 else rng.randint(44, 64)
+        else:
+            extent = rng.randint(52, 94) if len(names) == 1 else rng.randint(28, 53)
         ratio = rng.uniform(0.82, 1.18)
         w = max(1, round(extent*SCALE*min(1, ratio)))
         h = max(1, round(extent*SCALE*min(1, 1/ratio)))
         # Preserve native aspect ratio; random ratio adds a mild deformation.
         tile.thumbnail((w, h), Image.Resampling.LANCZOS)
         tile = tile.resize((max(1, round(tile.width*ratio)), tile.height), Image.Resampling.LANCZOS)
-        margin = 12*SCALE
+        if expanded:
+            tile.thumbnail((108*SCALE, 108*SCALE), Image.Resampling.LANCZOS)
+        margin = (10 if expanded else 12)*SCALE
         x = rng.randint(margin, SIZE*SCALE-margin-tile.width)
         y = rng.randint(margin, SIZE*SCALE-margin-tile.height)
         layer = Image.new('L', canvas.size)
@@ -160,7 +176,8 @@ def target(family, seed):
     peak = im.getextrema()[1]
     im = im.point([round(v*255/peak) for v in range(256)])
     return im, {'family': family, 'image_seed': seed, 'appearance': mode,
-                'blur_sigma_px': sigma, 'placements': placements}
+                'blur_sigma_px': sigma, 'placements': placements,
+                **({'expanded': True} if expanded else {})}
 
 
 def verify(manifest_path):
@@ -221,11 +238,14 @@ def previews(out, samples):
         sheet.save(folder / f'contact_sheet_{page+1:02d}.png')
 
 
-def generate(out, ntrain, nval, ntest, master_seed):
+def generate(out, ntrain, nval, ntest, master_seed, *, legacy=False, ood_test=False):
     if out.exists():
         raise SystemExit(f'Output already exists: {out}. Choose a new --out folder; frozen data are not overwritten.')
     out.mkdir(parents=True)
     samples = []
+    version = LEGACY_VERSION if legacy else VERSION
+    combinations_order = list(TRAIN_COMBINATIONS)
+    random.Random(stable_seed(master_seed, 'train-combinations')).shuffle(combinations_order)
     source = Path(__file__).resolve().parent / 'diagnostic_source'
     files = ['01_ring.png', '02_cross.png', '03_triangle.png', '04_two_spots.png']
     diag = out / 'diagnostic' / '0000'
@@ -234,31 +254,40 @@ def generate(out, ntrain, nval, ntest, master_seed):
         shutil.copyfile(source / name, diag / f'{i:02d}.png')
     samples.append({'sample_id': 'diagnostic_0000', 'split': 'diagnostic',
                     'images': [f'diagnostic/0000/{i:02d}.png' for i in range(1, 5)],
-                    'distances_mm': Z, 'seed': 0, 'generator_version': VERSION,
+                    'distances_mm': Z, 'seed': 0, 'generator_version': version,
                     'params': {'purpose': 'fixed_A1_debug_only'}})
     for split, n in [('train', ntrain), ('validation', nval), ('test', ntest)]:
         for idx in range(1, n+1):
             seed = stable_seed(master_seed, split, idx)
             rng = random.Random(seed)
-            # Balanced families, shuffled independently of the optical plane.
-            families = [FAMILIES[((idx-1)*4+c) % len(FAMILIES)] for c in range(4)]
+            varied_train = split == 'train' and not legacy
+            if varied_train:
+                families = list(combinations_order[(idx-1) % len(combinations_order)])
+            else:
+                families = [FAMILIES[((idx-1)*4+c) % len(FAMILIES)] for c in range(4)]
             rng.shuffle(families)
+            if split == 'test' and ood_test:
+                families[(idx-1) % 4] = HOLDOUT_FAMILY
             folder = out / split / f'{idx:06d}'
             folder.mkdir(parents=True)
             paths, params = [], []
             for c, family in enumerate(families, 1):
-                im, p = target(family, stable_seed(seed, c))
+                image_seed = stable_seed(seed, c)
+                expanded = varied_train and stable_seed(image_seed, 'expanded') % 3 == 0
+                im, p = target(family, image_seed, expanded=expanded)
                 rel = f'{split}/{idx:06d}/{c:02d}.png'
                 im.save(out / rel)
                 paths.append(rel)
                 params.append(p)
             samples.append({'sample_id': f'{split}_{idx:06d}', 'split': split,
                             'images': paths, 'distances_mm': Z, 'seed': seed,
-                            'generator_version': VERSION, 'params': {'targets': params}})
+                            'generator_version': version, 'params': {'targets': params}})
         print(f'{split}: {n} quartets', flush=True)
+    revision = 'v2' if legacy else 'v3'
+    test_suffix = '-ood' if ood_test else ''
     manifest = {'format': 'doe-manifest/1', 'dataset_name': 'procedural_mixed_targets',
-                'dataset_version': f'v2-seed{master_seed}-train{ntrain}-val{nval}-test{ntest}',
-                'generator_version': VERSION, 'distances_mm': Z,
+                'dataset_version': f'{revision}-seed{master_seed}-train{ntrain}-val{nval}-test{ntest}{test_suffix}',
+                'generator_version': version, 'distances_mm': Z,
                 'master_seed': master_seed, 'pillow_version': PIL.__version__,
                 'target_interpretation': 'normalized amplitude = png/255', 'samples': samples}
     save_json(out / 'manifest.json', manifest)
@@ -275,6 +304,8 @@ def main():
     parser.add_argument('--validation', type=int, default=100)
     parser.add_argument('--test', type=int, default=100)
     parser.add_argument('--seed', type=int, default=3701)
+    parser.add_argument('--legacy', action='store_true', help='Reproduce the original v2 dataset')
+    parser.add_argument('--ood-test', action='store_true', help='Put unseen curves in each test quartet')
     parser.add_argument('--verify', type=Path, help='Only verify an existing manifest')
     args = parser.parse_args()
     if args.verify:
@@ -283,7 +314,10 @@ def main():
     else:
         if min(args.train, args.validation, args.test) < 1:
             parser.error('All split sizes must be positive.')
-        generate(args.out, args.train, args.validation, args.test, args.seed)
+        if args.legacy and args.ood_test:
+            parser.error('--legacy and --ood-test cannot be combined.')
+        generate(args.out, args.train, args.validation, args.test, args.seed,
+                 legacy=args.legacy, ood_test=args.ood_test)
 
 
 if __name__ == '__main__':

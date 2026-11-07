@@ -22,18 +22,18 @@ from model.data_connector import (
 from model.fresnel import DISTANCES, dequantize_phase_u8, quantize_phase_u8, reconstruct
 from model.metrics import compare_images
 from model.network import DOENet, PhaseNet
-from model.train import fit
+from model.train import fit, save_checkpoint
 
 
 def main(argv=None, *, sample_id=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("images", nargs="*", type=Path, help="Four PNGs ordered by distance")
     parser.add_argument("--weights", type=Path, help="Use a specific trained .pt file")
+    parser.add_argument("--manifest", type=Path, default=SRC / "dataset/data/manifest.json")
     parser.add_argument("--split", choices=("diagnostic", "test"), default="diagnostic")
     args = parser.parse_args(argv)
     if args.images and len(args.images) != 4:
         parser.error("Supply exactly four PNGs for 24.1, 25.3, 26.5 and 27.7 mm")
-    training_manifest = SRC / "dataset" / "data" / "manifest.json"
     if args.images:
         sample = ManifestSample(
             sample_id="custom",
@@ -54,7 +54,7 @@ def main(argv=None, *, sample_id=None):
             report=ManifestReport({"diagnostic": 1}, 4),
         )
     else:
-        manifest = training_manifest
+        manifest = args.manifest
     split = "diagnostic" if args.images else args.split
     dataset = ManifestQuartetDataset(manifest, split=split)
     index = next((i for i, sample in enumerate(dataset.samples) if sample.sample_id == sample_id), None)
@@ -71,30 +71,35 @@ def main(argv=None, *, sample_id=None):
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     output = SRC / "model" / "results" / f"network-{stamp}"
     weights_dir = SRC / "model" / "weights"
-    weights = args.weights or max(weights_dir.glob("best-*.pt"), default=None)
-    if weights is None:
-        model = PhaseNet()
-        loaders = build_dataloaders(training_manifest, batch_size=2, num_workers=0, pin_memory=False)
+    weights = args.weights
+    checkpoint = None
+    if weights is not None:
+        checkpoint = torch.load(weights, map_location=device, weights_only=True)
+    else:
+        candidates = [*weights_dir.glob("best-*.pt"), *(output.parent.glob("training-*/best.pt"))]
+        for candidate in sorted(candidates, key=lambda path: path.stat().st_mtime_ns, reverse=True):
+            state = torch.load(candidate, map_location=device, weights_only=True)
+            if state.get("architecture") in (2, 3, 4):
+                weights, checkpoint = candidate, state
+                break
+    if checkpoint is None:
+        model = PhaseNet(correction_limit=1.0)
+        loaders = build_dataloaders(args.manifest, batch_size=2, num_workers=0, pin_memory=False)
         print(f"Training neural network on {len(loaders['train'].dataset)} quartets...", flush=True)
         output.mkdir(parents=True)
         best_epoch = fit(model, loaders, device, epochs=10, report_dir=output)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         weights_dir.mkdir(parents=True, exist_ok=True)
         weights = weights_dir / f"best-{stamp}.pt"
-        temporary = weights.with_suffix(".tmp")
-        torch.save({
-            "architecture": 4, "state": model.state_dict(), "epoch": best_epoch,
-            "projection_iterations": model.projection_iterations,
-        }, temporary)
-        temporary.replace(weights)
+        save_checkpoint(weights, model, best_epoch)
         print(f"Saved weights: {weights}", flush=True)
     else:
-        checkpoint = torch.load(weights, map_location=device, weights_only=True)
         architecture = checkpoint.get("architecture")
         if architecture in (3, 4):
             model = PhaseNet(
                 projection_iterations=checkpoint.get("projection_iterations", 12),
                 aligned=architecture == 4,
+                correction_limit=checkpoint.get("correction_limit"),
             )
         elif architecture == 2:
             model = DOENet(projection_iterations=checkpoint.get("projection_iterations", 6))
@@ -118,7 +123,7 @@ def main(argv=None, *, sample_id=None):
         scores = compare_images(planes, targets).tolist()
 
         report = {
-            "trained": True, "epoch": best_epoch, "sample_id": sample_id,
+            "trained": best_epoch > 0, "epoch": best_epoch, "sample_id": sample_id,
             "split": split, "inputs": input_paths, "weights": str(weights.resolve()),
             "planes": [],
         }

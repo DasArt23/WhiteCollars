@@ -59,9 +59,9 @@ def save_progress(path, baseline, history):
     ):
         points = [(0, baseline[key])] + [(row["epoch"], row["validation"][key]) for row in history]
         draw_panel(draw, top, label, color, points, last_epoch)
-    losses = [(row["epoch"], row["phase_loss"]) for row in history]
-    draw_panel(draw, 611, "Training phase loss", "#c32635", losses, last_epoch,
-               "mean(1 - cos(predicted phase - target phase))")
+    losses = [(row["epoch"], row["optical_loss"]) for row in history]
+    draw_panel(draw, 611, "Training optical loss", "#c32635", losses, last_epoch,
+               "Penalizes the weaker gain in SSIM and Pearson")
     draw.text((500, 853), "Epoch", fill=INK, font=ImageFont.load_default(size=16), anchor="mt")
     canvas.save(path)
 

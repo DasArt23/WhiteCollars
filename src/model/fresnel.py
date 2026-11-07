@@ -32,6 +32,14 @@ def quantize_phase_u8(phase):
 def dequantize_phase_u8(pixels):
     return pixels.float() / 255 * (2 * math.pi) - math.pi
 
+
+def quantize_phase_ste(phase):
+    """Use PNG levels in the forward pass and pass phase gradients through."""
+    wrapped = torch.where(phase.abs() > math.pi, (phase + math.pi).remainder(2 * math.pi) - math.pi, phase)
+    pixels = dequantize_phase_u8(quantize_phase_u8(wrapped))
+    return pixels + (phase - phase.detach())
+
+
 def reconstruct(phase):
     """Peak-normalized amplitudes in the four observation planes."""
     return torch.stack([fresnel(phase, z) for z in DISTANCES], dim=-3)

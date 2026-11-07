@@ -108,11 +108,11 @@ python generate_dataset.py --verify data/manifest.json
 
 Пересоздать тот же пакет в НОВОЙ папке:
 
-python generate_dataset.py --out data_reproduced
+python generate_dataset.py --out data_reproduced --legacy
 
 Увеличить только train до 1000 четвёрок, сохранив seed=3701 и размеры val/test:
 
-python generate_dataset.py --out data_1000 --train 1000
+python generate_dataset.py --out data_1000 --train 1000 --legacy
 
 Не менять --seed и код генератора при таком расширении.
 Первые 200 train, вся validation, test и diagnostic сохраняют те же пиксели.
@@ -121,6 +121,16 @@ python generate_dataset.py --out data_1000 --train 1000
 Манифест большего набора получает новую dataset_version; нельзя подменять
 данные старой версии незаметно. Для сравнения версий есть пиксельные хеши
 в validation_report.json. Воспроизводимость требует одинаковой версии Pillow.
+
+РАСШИРЕННЫЙ НАБОР V3
+
+python generate_dataset.py --out data_v3 --train 1000
+
+В train используются все 15 сочетаний четырёх семейств. В части примеров
+объекты крупнее. При том же seed пиксели validation, test и diagnostic
+сохраняются. Для отдельной проверки на незнакомых формах добавьте --ood-test
+и укажите новую папку через --out. В каждой тестовой четвёрке появится одна
+волнообразная кривая из семейства, отсутствующего в train и validation.
 
 ФАЙЛЫ
 
