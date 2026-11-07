@@ -173,19 +173,15 @@ def load_manifest(
 
 
 class ManifestQuartetDataset(Dataset):
-    """
-    PyTorch Dataset поверх data/manifest.json для конкретного split.
-    Возвращает кортеж: (targets: Tensor[4, 128, 128] float32 в [0, 1], sample_id: str).
-    """
-
     def __init__(
         self,
-        manifest: str | Path | ManifestData = "data/manifest.json",
+        manifest: str | Path | ManifestData = "src/dataset/data/manifest.json",
         split: str = "train",
         smoke_limit: int | None = None,
         augment_channel_shuffle: bool = False,
         augment_dihedral: bool = False,
         seed: int = 3701,
+        preload: bool = True,
     ) -> None:
         if isinstance(manifest, (str, Path)):
             self.manifest_data = load_manifest(manifest, verify_images=False)
@@ -208,19 +204,27 @@ class ManifestQuartetDataset(Dataset):
         self.augment_dihedral = augment_dihedral
         self.rng = np.random.default_rng(seed)
 
+        # Предзагрузка всех четвёрок в RAM один раз (200 четвёрок = всего 13 МБ!)
+        self._cache: list[np.ndarray] | None = None
+        if preload:
+            self._cache = [
+                np.stack([_validate_and_load_png(self.root_dir / rel) for rel in rec.images], axis=0)
+                for rec in self.samples
+            ]
+
     def __len__(self) -> int:
         return len(self.samples)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, str]:
         record = self.samples[idx]
-        planes = [_validate_and_load_png(self.root_dir / rel) for rel in record.images]
-        arr = np.stack(planes, axis=0)  # [4, 128, 128], float32 в [0, 1]
+        if self._cache is not None:
+            arr = self._cache[idx].copy()
+        else:
+            arr = np.stack([_validate_and_load_png(self.root_dir / rel) for rel in record.images], axis=0)
 
         if self.split == "train":
-            # Перестановка каналов в памяти даёт новую целевую четвёрку без изменения файлов на диске
             if self.augment_channel_shuffle:
-                perm = self.rng.permutation(4)
-                arr = arr[perm]
+                arr = arr[self.rng.permutation(4)]
             if self.augment_dihedral:
                 k = int(self.rng.integers(0, 4))
                 if k:
@@ -231,20 +235,23 @@ class ManifestQuartetDataset(Dataset):
 
         return torch.from_numpy(arr), record.sample_id
 
-
 def build_dataloaders(
-    manifest_path: str | Path = "data/manifest.json",
-    batch_size: int = 8,
-    num_workers: int = 2,
+    manifest_path: str | Path = "src/dataset/data/manifest.json",
+    batch_size: int = 64,
+    num_workers: int = 4,
     mode: str = "v1",
     augment_train: bool = False,
-    pin_memory: bool = True,
+    pin_memory: bool | None = None,
 ) -> dict[str, DataLoader]:
     """
     Создаёт загрузчики для обучения и валидации:
-    - mode="train_smoke": 8 четвёрок из train (порядок обучения из TRAINING_METHODS.md)
-    - mode="v1": полный train (200 или 1000) + validation (100) + diagnostic (1) + test (100)
+    - mode="train_smoke": первые 8 четвёрок из train
+    - mode="v1": полный train + validation + diagnostic + test
     """
+    use_pin = torch.cuda.is_available() if pin_memory is None else pin_memory
+    nw = num_workers if torch.cuda.is_available() else 0
+    keep_workers = nw > 0
+
     m_data = load_manifest(manifest_path, verify_images=False)
     smoke_limit = 8 if mode == "train_smoke" else None
 
@@ -264,15 +271,17 @@ def build_dataloaders(
             train_ds,
             batch_size=min(batch_size, len(train_ds)),
             shuffle=True,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
+            num_workers=nw,
+            pin_memory=use_pin,
+            persistent_workers=keep_workers,
         ),
         "validation": DataLoader(
             val_ds,
             batch_size=batch_size,
             shuffle=False,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
+            num_workers=nw,
+            pin_memory=use_pin,
+            persistent_workers=keep_workers,
         ),
         "diagnostic": DataLoader(
             diag_ds,
@@ -284,11 +293,11 @@ def build_dataloaders(
             test_ds,
             batch_size=batch_size,
             shuffle=False,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
+            num_workers=nw,
+            pin_memory=use_pin,
+            persistent_workers=keep_workers,
         ),
     }
-
 
 def forward_physics_loss(
     pred_phase: torch.Tensor,
@@ -318,9 +327,9 @@ def forward_physics_loss(
         loss = w_pearson * (1.0 - p_mean) + w_ssim * (1.0 - s_mean)
 
     metrics = {
-        "loss": float(loss.detach().item()),
-        "pearson": float(p_mean.detach().item()),
-        "ssim_global": float(s_mean.detach().item()),
+        "loss": loss.detach(),
+        "pearson": p_mean.detach(),
+        "ssim_global": s_mean.detach(),
     }
     return loss, recon_01.detach(), metrics
 

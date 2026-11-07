@@ -6,11 +6,11 @@ from .fresnel import reconstruct
 from .metrics import compare_images
 
 
-def make_supervised_loader(model, loader, device, *, steps):
+def make_supervised_loader(model, loader, device, *, steps, train_batch_size=32):
     examples = []
     total = len(loader)
     for index, (targets, _) in enumerate(loader, 1):
-        targets = targets.to(device)
+        targets = targets.to(device, non_blocking=True)
         features, initial, _ = model.optical_features(targets)
         phase = initial.detach().clone().requires_grad_(True)
         optimizer = torch.optim.Adam([phase], lr=0.08)
@@ -28,8 +28,9 @@ def make_supervised_loader(model, loader, device, *, steps):
                 loss = 1 - (0.8 * scores[:, 0] + 0.2 * scores[:, 1]).mean()
                 loss.backward()
                 optimizer.step()
-        examples.append((features.cpu(), initial.cpu(), best_phase.cpu()))
-        if index % 20 == 0 or index == total:
+        # Оставляем тензоры сразу на устройстве (V100), чтобы не гонять по шине PCIe каждую эпоху
+        examples.append((features.detach(), initial.detach(), best_phase.detach(), targets.detach()))
+        if index % 5 == 0 or index == total:
             print(f"Phase targets: batch {index}/{total}", flush=True)
     dataset = TensorDataset(*(torch.cat(tensors) for tensors in zip(*examples, strict=True)))
-    return DataLoader(dataset, batch_size=loader.batch_size, shuffle=True)
+    return DataLoader(dataset, batch_size=train_batch_size, shuffle=True)

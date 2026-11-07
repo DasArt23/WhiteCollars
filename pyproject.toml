@@ -11,7 +11,7 @@ dependencies = [
     "numpy>=2.0.0",
     "pillow>=13.0.0",
     "scikit-image>=0.24.0",
-    "torch>=2.4.0",
+    "torch==2.14.1",
 ]
 
 [project.scripts]
@@ -26,6 +26,10 @@ build-backend = "setuptools.build_meta"
 package-dir = {"" = "src"}
 py-modules = ["main"]
 
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["app*", "dataset*", "model*", "doe_eval*"]
@@ -35,6 +39,9 @@ exclude = ["tests*"]
 pythonpath = ["src"]
 testpaths = ["src/tests"]
 addopts = "-v"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
 
 [dependency-groups]
 dev = [
