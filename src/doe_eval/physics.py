@@ -1,21 +1,42 @@
 from __future__ import annotations
-
-import math
 from typing import Sequence
-
-import numpy as np
 import torch
+import math
+from .config import DISTANCES, N, PIXEL, WAVELENGTH, DEFAULT_NORM, DEFAULT_COMPARE
+_FRESNEL_CACHE: dict[tuple[torch.device, tuple[float, ...], float, float], tuple[torch.Tensor, torch.Tensor]] = {}
 
-from .config import (
-    DEFAULT_COMPARE,
-    DEFAULT_NORM,
-    DISTANCES,
-    EPS,
-    N,
-    PIXEL,
-    WAVELENGTH,
-)
+EPS = 1e-8
 
+def _get_fresnel_kernels(
+    device: torch.device,
+    distances: Sequence[float] = DISTANCES,
+    wavelength: float = WAVELENGTH,
+    pixel: float = PIXEL,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Кеширует неизменяемые комплексные ядра Френеля прямо в памяти GPU."""
+    key = (device, tuple(float(d) for d in distances), float(wavelength), float(pixel))
+    if key not in _FRESNEL_CACHE:
+        idx = torch.arange(-N // 2, N // 2, device=device, dtype=torch.float32)
+        u = idx * pixel
+        uu, vv = torch.meshgrid(u, u, indexing="ij")
+        u2_v2 = (uu.square() + vv.square()).unsqueeze(0)  # [1, N, N]
+
+        z = torch.tensor(distances, device=device, dtype=torch.float32).view(-1, 1, 1)  # [D, 1, 1]
+        k = 2.0 * math.pi / wavelength
+
+        quad_in_angle = (math.pi / (wavelength * z)) * u2_v2
+        quad_in = torch.polar(torch.ones_like(quad_in_angle), quad_in_angle).unsqueeze(0)  # [1, D, N, N]
+
+        dx = wavelength * z / (N * pixel)
+        idx2 = (idx.square().unsqueeze(1) + idx.square().unsqueeze(0)).unsqueeze(0)
+        x2_y2 = idx2 * dx.square()
+
+        quad_out_angle = k * z + (math.pi / (wavelength * z)) * x2_y2
+        quad_out = torch.polar(torch.ones_like(quad_out_angle), quad_out_angle)
+        prefactor = (quad_out / (1j * wavelength * z)).unsqueeze(0)  # [1, D, N, N]
+
+        _FRESNEL_CACHE[key] = (quad_in.contiguous(), prefactor.contiguous())
+    return _FRESNEL_CACHE[key]
 
 def fresnel_propagate_complex(
     phase: torch.Tensor,

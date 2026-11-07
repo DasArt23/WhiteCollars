@@ -1,0 +1,35 @@
+{
+  "trained": true,
+  "epoch": 16,
+  "sample_id": "test_000002",
+  "split": "test",
+  "inputs": [
+    "/home/fen1x/WhiteCollars/src/dataset/data/test/000002/01.png",
+    "/home/fen1x/WhiteCollars/src/dataset/data/test/000002/02.png",
+    "/home/fen1x/WhiteCollars/src/dataset/data/test/000002/03.png",
+    "/home/fen1x/WhiteCollars/src/dataset/data/test/000002/04.png"
+  ],
+  "weights": "/home/fen1x/WhiteCollars/src/model/results/training-20261107-073652-317694/best.pt",
+  "planes": [
+    {
+      "distance_mm": 24.1,
+      "pearson": 0.549037754535675,
+      "ssim": 0.34551918506622314
+    },
+    {
+      "distance_mm": 25.3,
+      "pearson": 0.4127621650695801,
+      "ssim": 0.18253259360790253
+    },
+    {
+      "distance_mm": 26.5,
+      "pearson": 0.462312251329422,
+      "ssim": 0.24687005579471588
+    },
+    {
+      "distance_mm": 27.7,
+      "pearson": 0.6378101706504822,
+      "ssim": 0.46155059337615967
+    }
+  ]
+}
