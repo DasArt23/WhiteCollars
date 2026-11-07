@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
-from .config import N, NUM_PLANES
+from .config import NUM_PLANES, N
 from .physics import dequantize_phase_u8, quantize_phase_u8
 
 
@@ -45,14 +45,18 @@ def save_u8_png(arr_u8: np.ndarray, path: str | Path) -> None:
     """Сохраняет uint8 массив [N, N] как 8-битный PNG режима 'L'."""
     if arr_u8.shape != (N, N):
         raise ValueError(f"Ожидался массив ({N}, {N}), получено {arr_u8.shape}")
+    if arr_u8.dtype != np.uint8:
+        raise ValueError("save_u8_png ожидает массив uint8")
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    img = Image.fromarray(arr_u8.astype(np.uint8), mode="L")
+    img = Image.fromarray(arr_u8)
     img.save(p, format="PNG")
 
 
 def save_doe_png(phase: np.ndarray, path: str | Path) -> None:
     """Квантует фазу [-pi, pi] в uint8 [0, 255] и сохраняет в PNG."""
+    if not np.isfinite(phase).all():
+        raise ValueError("Фаза содержит NaN или Inf")
     u8 = quantize_phase_u8(np.asarray(phase, dtype=np.float32))
     save_u8_png(u8, path)
 
@@ -65,6 +69,24 @@ def load_doe_png(path: str | Path) -> np.ndarray:
 
 def save_recon_png(recon_01: np.ndarray, path: str | Path) -> None:
     """Сохраняет нормированную картинку [0, 1] в 8-битный PNG."""
+    if not np.isfinite(recon_01).all():
+        raise ValueError("Восстановление содержит NaN или Inf")
     clipped = np.clip(np.asarray(recon_01, dtype=np.float32), 0.0, 1.0)
     u8 = np.rint(clipped * 255.0).astype(np.uint8)
     save_u8_png(u8, path)
+
+
+def save_comparison_png(targets: np.ndarray, recons: np.ndarray, path: str | Path) -> None:
+    """Панель для визуальной проверки: цели сверху, восстановления снизу."""
+    if targets.shape != (NUM_PLANES, N, N) or recons.shape != targets.shape:
+        raise ValueError("Ожидались две четвёрки [4,N,N]")
+    panel = Image.new("L", (NUM_PLANES * N, 2 * N + 50), 255)
+    draw = ImageDraw.Draw(panel)
+    for i, (target, recon) in enumerate(zip(targets, recons)):
+        for image, offset, label in ((target, 20, "Target"), (recon, N + 50, "Reconstruction")):
+            pixels = np.rint(np.clip(image, 0, 1) * 255).astype(np.uint8)
+            panel.paste(Image.fromarray(pixels), (i * N, offset))
+            draw.text((i * N + 4, offset - 16), f"{label} {i + 1}", fill=0)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    panel.save(path)

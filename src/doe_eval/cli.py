@@ -11,9 +11,15 @@ import numpy as np
 import torch
 
 from .baseline import gerchberg_saxton_multiplane
-from .config import DEFAULT_COMPARE, DEFAULT_NORM, DISTANCES, N, PIXEL, WAVELENGTH
+from .config import DEFAULT_COMPARE, DEFAULT_NORM, DISTANCES, N
 from .dataset import FourImageDataset
-from .io import load_doe_png, load_four_targets, save_doe_png, save_recon_png
+from .io import (
+    load_doe_png,
+    load_four_targets,
+    save_comparison_png,
+    save_doe_png,
+    save_recon_png,
+)
 from .metrics import pearson, ssim_global, ssim_skimage
 from .physics import (
     dequantize_phase_u8,
@@ -96,6 +102,7 @@ def cmd_reconstruct(args: argparse.Namespace) -> None:
         save_recon_png(recons_01[i], out_dir / f"recon_{i + 1}.png")
 
     report = evaluate_pair_arrays(targets, recons_01)
+    save_comparison_png(targets, recons_01, out_dir / "preview" / "comparison.png")
     report["norm"] = args.norm
     report["compare"] = args.compare
 
@@ -107,7 +114,7 @@ def cmd_reconstruct(args: argparse.Namespace) -> None:
 
 def cmd_evaluate(args: argparse.Namespace) -> None:
     device = resolve_device(args.device)
-    dataset = FourImageDataset(args.data)
+    dataset = FourImageDataset(args.data, split=args.split)
     doe_dir = Path(args.doe_dir)
     out_csv = Path(args.out)
     out_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -115,10 +122,18 @@ def cmd_evaluate(args: argparse.Namespace) -> None:
     rows = []
     for targets_t, sample_id in dataset:
         doe_path = doe_dir / f"{sample_id}.png"
+        # Совместимость с экспортом по имени папки и существующими manifest ID.
+        if not doe_path.is_file():
+            paths, _ = dataset.items[len(rows)]
+            alternatives = [doe_dir / f"{paths[0].parent.name}.png",
+                            doe_dir / f"{paths[0].parent.parent.name}_{sample_id}.png"]
+            doe_path = next((p for p in alternatives if p.is_file()), doe_path)
         recons_01 = reconstruct_from_doe_file(doe_path, device, args.norm, args.compare)
         report = evaluate_pair_arrays(targets_t.numpy(), recons_01)
         row = {
             "id": sample_id,
+            "norm": args.norm,
+            "compare": args.compare,
             "pearson_mean": report["mean"]["pearson"],
             "ssim_global_mean": report["mean"]["ssim_global"],
             "ssim_skimage_mean": report["mean"]["ssim_skimage"],
@@ -161,6 +176,7 @@ def cmd_baseline(args: argparse.Namespace) -> None:
         save_recon_png(recons_01[i], out_dir / f"recon_{i + 1}.png")
 
     report = evaluate_pair_arrays(targets, recons_01)
+    save_comparison_png(targets, recons_01, out_dir / "preview" / "comparison.png")
     report["iters"] = args.iters
     report["norm"] = args.norm
     report["compare"] = args.compare
@@ -209,6 +225,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval = sub.add_parser("evaluate", help="Пакетная проверка предсказанных ДОЭ на датасете")
     p_eval.add_argument("--data", required=True, help="Путь к папке датасета (data/test)")
     p_eval.add_argument("--doe-dir", required=True, help="Папка с предсказанными <id>.png")
+    p_eval.add_argument("--split", help="Фильтр split при чтении manifest.json")
     p_eval.add_argument("--out", default="results.csv", help="Путь к итоговому CSV")
     add_common_flags(p_eval)
     p_eval.set_defaults(func=cmd_evaluate)

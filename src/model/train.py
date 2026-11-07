@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
+import hashlib
 import json
-from pathlib import Path
+import random
 import sys
 import time
+from copy import deepcopy
+from pathlib import Path
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
@@ -14,13 +17,19 @@ ROOT = Path(__file__).resolve().parent
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT.parent))
 
+from doe_eval.config import DEFAULT_MANIFEST
+from doe_eval.io import save_doe_png
 from model.data_connector import (
     build_dataloaders,
     export_split_predictions,
-    forward_physics_loss,
 )
-from model.holonet import HoloUnrollNet, compute_sota_physics_loss, hybrid_infer_phase
-from doe_eval.io import save_doe_png
+from model.holonet import (
+    METRIC_WEIGHTS,
+    HoloUnrollNet,
+    balanced_quality_score,
+    compute_sota_physics_loss,
+    hybrid_infer_phase,
+)
 
 
 @torch.no_grad()
@@ -33,25 +42,30 @@ def evaluate_loader(
     total_loss = 0.0
     total_pearson = 0.0
     total_ssim = 0.0
+    total_local = 0.0
     total_samples = 0
 
     for targets, _ in loader:
         bsz = targets.shape[0]
         targets = targets.to(device, non_blocking=True)
         pred_phase = model(targets)
-        _, _, metrics = forward_physics_loss(pred_phase, targets, use_ste_quantize=True)
+        _, _, metrics = compute_sota_physics_loss(pred_phase, targets)
 
         total_loss += float(metrics["loss"].item()) * bsz
         total_pearson += float(metrics["pearson"].item()) * bsz
         total_ssim += float(metrics["ssim_global"].item()) * bsz
+        total_local += float(metrics["ssim_local"].item()) * bsz
         total_samples += bsz
 
-    denom = max(1, total_samples)
+    if total_samples == 0:
+        raise ValueError("Нельзя оценить пустую выборку")
+    denom = total_samples
     return {
         "loss": total_loss / denom,
         "pearson": total_pearson / denom,
         "ssim_global": total_ssim / denom,
-        "score": 0.5 * (total_pearson / denom) + 0.5 * (total_ssim / denom),
+        "ssim_skimage": total_local / denom,
+        "score": balanced_quality_score(total_pearson / denom, total_local / denom),
     }
 
 
@@ -81,7 +95,7 @@ def export_split_with_optional_polish(
 
 
 def train_model(
-    manifest_path: str | Path = "src/dataset/data/manifest.json",
+    manifest_path: str | Path = DEFAULT_MANIFEST,
     checkpoint_out: str | Path = "checkpoints/best_model.pt",
     epochs: int = 60,
     batch_size: int = 16,
@@ -91,7 +105,15 @@ def train_model(
     mode: str = "v1",
     device_str: str = "auto",
     polish_export_steps: int = 25,
+    seed: int = 3701,
 ) -> Path:
+    if epochs < 1 or batch_size < 1 or lr <= 0 or polish_export_steps < 0:
+        raise ValueError("epochs и batch_size >= 1, lr > 0, polish_export_steps >= 0")
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
     device = torch.device(
         "cuda" if (device_str == "auto" and torch.cuda.is_available()) else (
             "cpu" if device_str == "auto" else device_str
@@ -112,6 +134,7 @@ def train_model(
         mode=mode,
         augment_train=True,
         pin_memory=(device.type == "cuda"),
+        seed=seed,
     )
 
     model = HoloUnrollNet(unroll_steps=unroll_steps, base_dim=base_dim).to(device)
@@ -139,6 +162,7 @@ def train_model(
     )
 
     best_score = -1.0
+    best_ssim = -1.0
     best_state = None
     history = []
 
@@ -159,12 +183,16 @@ def train_model(
                 pred_phase = model(targets)
                 loss, _, metrics = compute_sota_physics_loss(pred_phase, targets)
 
+            if not torch.isfinite(loss):
+                raise FloatingPointError(f"Неконечный loss на эпохе {epoch}")
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            previous_scale = scaler.get_scale()
             scaler.step(optimizer)
             scaler.update()
-            scheduler.step()
+            if scaler.get_scale() >= previous_scale:
+                scheduler.step()
 
             train_loss_sum += float(metrics["loss"].item()) * bsz
             train_p_sum += float(metrics["pearson"].item()) * bsz
@@ -182,14 +210,16 @@ def train_model(
             "val_loss": val_metrics["loss"],
             "val_pearson": val_metrics["pearson"],
             "val_ssim_global": val_metrics["ssim_global"],
+            "val_ssim_skimage": val_metrics["ssim_skimage"],
             "val_score": val_metrics["score"],
             "time_sec": round(dt, 2),
         }
         history.append(row)
 
-        is_best = val_metrics["score"] > best_score
+        is_best = (val_metrics["score"], val_metrics["ssim_skimage"]) > (best_score, best_ssim)
         if is_best:
             best_score = val_metrics["score"]
+            best_ssim = val_metrics["ssim_skimage"]
             best_state = deepcopy(model.state_dict())
             torch.save(
                 {
@@ -198,6 +228,11 @@ def train_model(
                     "base_dim": base_dim,
                     "epoch": epoch,
                     "val_metrics": val_metrics,
+                    "seed": seed,
+                    "manifest_sha256": hashlib.sha256(manifest_p.read_bytes()).hexdigest(),
+                    "metric_weights": METRIC_WEIGHTS,
+                    "checkpoint_criterion": "harmonic_mean(positive_pearson, positive_ssim_skimage); SSIM breaks ties",
+                    "quantization": "uint8-ste",
                     "state_dict": best_state,
                 },
                 ckpt_path,
@@ -207,7 +242,8 @@ def train_model(
         print(
             f"Epoch {epoch:03d}/{epochs:03d} [{dt:5.2f}s]{mark} | "
             f"Train P: {row['train_pearson']:.4f} SSIM: {row['train_ssim']:.4f} | "
-            f"Val P: {val_metrics['pearson']:.4f} SSIM: {val_metrics['ssim_global']:.4f}",
+            f"Val P: {val_metrics['pearson']:.4f} SSIM global: {val_metrics['ssim_global']:.4f} "
+            f"SSIM skimage: {val_metrics['ssim_skimage']:.4f}",
             flush=True,
         )
 
@@ -231,8 +267,8 @@ def train_model(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Обучение SOTA модели HoloUnrollNet для синтеза ДОЭ")
-    parser.add_argument("--manifest", default="src/dataset/data/manifest.json", help="Путь к manifest.json")
+    parser = argparse.ArgumentParser(description="Обучение HoloUnrollNet для синтеза ДОЭ")
+    parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST), help="Путь к manifest.json")
     parser.add_argument("--checkpoint", default="checkpoints/best_model.pt", help="Куда сохранить веса")
     parser.add_argument("--epochs", type=int, default=60, help="Число эпох обучения")
     parser.add_argument("--batch-size", type=int, default=16, help="Размер батча")
@@ -241,6 +277,7 @@ def main() -> None:
     parser.add_argument("--base-dim", type=int, default=48, help="Базовое число каналов Fourier U-Net")
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     parser.add_argument("--smoke", action="store_true", help="Быстрый тест на 8 примерах (train_smoke)")
+    parser.add_argument("--seed", type=int, default=3701)
     parser.add_argument("--polish-steps", type=int, default=25, help="Шаги финального дожима при экспорте PNG")
     args = parser.parse_args()
 
@@ -255,6 +292,7 @@ def main() -> None:
         mode="train_smoke" if args.smoke else "v1",
         device_str=args.device,
         polish_export_steps=args.polish_steps,
+        seed=args.seed,
     )
 
 

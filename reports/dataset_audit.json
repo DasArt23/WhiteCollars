@@ -3,7 +3,7 @@
   "dataset_version": "v2-seed3701-train1000-val100-test100",
   "manifest_sha256": "f0d5d06e8481531acf362569ee0b67e10116e52104097c1b9aba85f28a4cc538",
   "environment": {
-    "python": "3.14.10",
+    "python": "3.14.7",
     "numpy": "2.5.4",
     "pillow": "13.0.0"
   },
@@ -335,35 +335,32 @@
     "composition + digit + geometry + strokes": 333,
     "composition + icon + letter + strokes": 333
   },
-  "frozen_reference": {
-    "checked_images": 1604,
-    "mismatches": []
-  },
+  "frozen_reference": null,
   "near_threshold": 0.95,
   "near_similarity": {
     "validation_train": {
       "queries": 400,
       "near_images_found": 3,
       "share_found": 0.0075,
-      "median_best_candidate_pearson": 0.6949706375598907
+      "median_best_candidate_pearson": 0.694969892501831
     },
     "test_train": {
       "queries": 400,
       "near_images_found": 1,
       "share_found": 0.0025,
-      "median_best_candidate_pearson": 0.7069966197013855
+      "median_best_candidate_pearson": 0.7069961428642273
     },
     "test_validation": {
       "queries": 400,
       "near_images_found": 1,
       "share_found": 0.0025,
-      "median_best_candidate_pearson": 0.6228611469268799
+      "median_best_candidate_pearson": 0.6228625774383545
     },
     "train_sample_train": {
       "queries": 300,
       "near_images_found": 4,
       "share_found": 0.013333333333333334,
-      "median_best_candidate_pearson": 0.6848493218421936
+      "median_best_candidate_pearson": 0.6848519742488861
     }
   },
   "near_method": "Approximate: top 5 candidates by 32x32 Pearson, verified at 128x128. All held-out queries; 300 seeded train queries. No alignment invariance; may miss similar pairs.",
@@ -372,55 +369,55 @@
       "comparison": "test_validation",
       "a": "test/000095/03.png",
       "b": "validation/000052/01.png",
-      "pearson": 0.9875389933586121
+      "pearson": 0.9875336289405823
     },
     {
       "comparison": "train_sample_train",
       "a": "train/000244/03.png",
       "b": "train/000553/04.png",
-      "pearson": 0.9847187995910645
+      "pearson": 0.9847189784049988
     },
     {
       "comparison": "validation_train",
       "a": "validation/000037/03.png",
       "b": "train/000694/02.png",
-      "pearson": 0.979987621307373
+      "pearson": 0.9799916744232178
     },
     {
       "comparison": "train_sample_train",
       "a": "train/000233/01.png",
       "b": "train/000913/04.png",
-      "pearson": 0.9718999266624451
+      "pearson": 0.9719046354293823
     },
     {
       "comparison": "train_sample_train",
       "a": "train/000023/03.png",
       "b": "train/000650/01.png",
-      "pearson": 0.9631274938583374
+      "pearson": 0.9631254076957703
     },
     {
       "comparison": "validation_train",
       "a": "validation/000013/02.png",
       "b": "train/000631/04.png",
-      "pearson": 0.9615773558616638
+      "pearson": 0.9615769386291504
     },
     {
       "comparison": "train_sample_train",
       "a": "train/000529/01.png",
       "b": "train/000947/02.png",
-      "pearson": 0.9612663388252258
+      "pearson": 0.9612681865692139
     },
     {
       "comparison": "test_train",
       "a": "test/000074/03.png",
       "b": "train/000263/03.png",
-      "pearson": 0.9593028426170349
+      "pearson": 0.959306538105011
     },
     {
       "comparison": "validation_train",
       "a": "validation/000035/03.png",
       "b": "train/000563/02.png",
-      "pearson": 0.9542903304100037
+      "pearson": 0.9542908668518066
     }
   ],
   "pixel_hashes": {

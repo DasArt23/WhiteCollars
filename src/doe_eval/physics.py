@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import torch
@@ -11,10 +11,53 @@ from .config import (
     DEFAULT_NORM,
     DISTANCES,
     EPS,
-    N,
     PIXEL,
     WAVELENGTH,
+    N,
 )
+
+_FRESNEL_CACHE: dict[tuple[torch.device, tuple[float, ...], float, float], tuple[torch.Tensor, torch.Tensor]] = {}
+
+
+def _get_fresnel_kernels(
+    device: torch.device,
+    distances: Sequence[float] = DISTANCES,
+    wavelength: float = WAVELENGTH,
+    pixel: float = PIXEL,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Кеширует неизменяемые комплексные ядра Френеля прямо в памяти GPU."""
+    if len(distances) == 0 or any(not math.isfinite(float(z)) or z <= 0 for z in distances):
+        raise ValueError("Расстояния должны быть конечными положительными числами")
+    if not math.isfinite(wavelength) or not math.isfinite(pixel) or wavelength <= 0 or pixel <= 0:
+        raise ValueError("Длина волны и шаг пикселя должны быть конечными и положительными")
+    key = (device, tuple(float(d) for d in distances), float(wavelength), float(pixel))
+    if key not in _FRESNEL_CACHE:
+        # Угол kz достигает ~3e5 рад: float32 теряет точность комплексного поля.
+        # Считаем константы один раз в float64, сам оператор работает в complex64.
+        idx = torch.arange(-N // 2, N // 2, device=device, dtype=torch.float64)
+        u = idx * pixel
+        uu, vv = torch.meshgrid(u, u, indexing="ij")
+        u2_v2 = (uu.square() + vv.square()).unsqueeze(0)  # [1, N, N]
+
+        z = torch.tensor(distances, device=device, dtype=torch.float64).view(-1, 1, 1)
+        k = 2.0 * math.pi / wavelength
+
+        quad_in_angle = (math.pi / (wavelength * z)) * u2_v2
+        quad_in = torch.polar(torch.ones_like(quad_in_angle), quad_in_angle).unsqueeze(0)  # [1, D, N, N]
+
+        dx = wavelength * z / (N * pixel)
+        idx2 = (idx.square().unsqueeze(1) + idx.square().unsqueeze(0)).unsqueeze(0)
+        x2_y2 = idx2 * dx.square()
+
+        quad_out_angle = k * z + (math.pi / (wavelength * z)) * x2_y2
+        quad_out = torch.polar(torch.ones_like(quad_out_angle), quad_out_angle)
+        prefactor = (quad_out / (1j * wavelength * z)).unsqueeze(0)  # [1, D, N, N]
+
+        _FRESNEL_CACHE[key] = (
+            quad_in.to(torch.complex64).contiguous(),
+            prefactor.to(torch.complex64).contiguous(),
+        )
+    return _FRESNEL_CACHE[key]
 
 
 def fresnel_propagate_complex(
@@ -23,58 +66,48 @@ def fresnel_propagate_complex(
     wavelength: float = WAVELENGTH,
     pixel: float = PIXEL,
 ) -> torch.Tensor:
-    """
-    Прямой расчёт дифракции Френеля с одним БПФ (возвращает комплексное поле K(x,y)).
-    Вход: phase [N, N] или [B, N, N] (радианы).
-    Выход: complex64 [4, N, N] или [B, 4, N, N].
-    """
     unbatched = phase.ndim == 2
-    if unbatched:
-        phase_b = phase.unsqueeze(0)
-    elif phase.ndim == 3:
-        phase_b = phase
-    else:
-        raise ValueError(f"Ожидался тензор фазы [N,N] или [B,N,N], получено {tuple(phase.shape)}")
+    phase_b = phase.unsqueeze(0) if unbatched else phase
+    if phase_b.ndim != 3 or phase_b.shape[-2:] != (N, N):
+        raise ValueError(f"Ожидался тензор [N,N] или [B,N,N] ({N}x{N}), получено {tuple(phase.shape)}")
 
-    _, height, width = phase_b.shape
-    if height != N or width != N:
-        raise ValueError(f"Размер фазы должен быть {N}x{N}, получено {height}x{width}")
-
-    device = phase_b.device
     phase_f32 = phase_b.to(dtype=torch.float32)
-
-    idx = torch.arange(-N // 2, N // 2, device=device, dtype=torch.float32)
-    u = idx * pixel
-    uu, vv = torch.meshgrid(u, u, indexing="ij")
-    u2_v2 = (uu.square() + vv.square()).unsqueeze(0)  # [1, N, N]
-
-    z = torch.tensor(distances, device=device, dtype=torch.float32).view(-1, 1, 1)  # [D, 1, 1]
-    k = 2.0 * math.pi / wavelength
+    quad_in, prefactor = _get_fresnel_kernels(phase_f32.device, distances, wavelength, pixel)
 
     # H(u,v) = exp(j * phi)
     h_field = torch.polar(torch.ones_like(phase_f32), phase_f32).unsqueeze(1)  # [B, 1, N, N]
+    inner = h_field * quad_in  # [B, 4, N, N]
 
-    quad_in_angle = (math.pi / (wavelength * z)) * u2_v2  # [D, N, N]
-    quad_in = torch.polar(torch.ones_like(quad_in_angle), quad_in_angle).unsqueeze(0)  # [1, D, N, N]
-
-    inner = h_field * quad_in  # [B, D, N, N]
     fft_term = torch.fft.fftshift(
         torch.fft.fft2(torch.fft.ifftshift(inner, dim=(-2, -1)), dim=(-2, -1)),
         dim=(-2, -1),
     )
-
-    # Шаг сетки в плоскости наблюдения: dx = lambda * z / (N * PIXEL)
-    dx = wavelength * z / (N * pixel)  # [D, 1, 1]
-    idx2 = (idx.square().unsqueeze(1) + idx.square().unsqueeze(0)).unsqueeze(0)  # [1, N, N]
-    x2_y2 = idx2 * dx.square()  # [D, N, N]
-
-    quad_out_angle = k * z + (math.pi / (wavelength * z)) * x2_y2
-    quad_out = torch.polar(torch.ones_like(quad_out_angle), quad_out_angle)
-    prefactor = quad_out / (1j * wavelength * z)  # [D, N, N]
-
-    field = prefactor.unsqueeze(0) * fft_term.to(torch.complex64)
+    field = prefactor * fft_term
     return field.squeeze(0) if unbatched else field
 
+
+def fresnel_inverse_complex(
+    field: torch.Tensor,
+    distances: Sequence[float] = DISTANCES,
+    wavelength: float = WAVELENGTH,
+    pixel: float = PIXEL,
+) -> torch.Tensor:
+    """Обратный оператор для каждой плоскости; сохраняет ось расстояний.
+
+    Включает деление на полный префактор, а не только компенсацию его фазы.
+    Это inverse, а не эрмитово-сопряжённый (adjoint) оператор.
+    """
+    if field.ndim not in (3, 4) or field.shape[-3:] != (len(distances), N, N):
+        raise ValueError("Ожидалось комплексное поле [D,N,N] или [B,D,N,N]")
+    unbatched = field.ndim == 3
+    field_b = field.unsqueeze(0) if unbatched else field
+    quad_in, prefactor = _get_fresnel_kernels(field.device, distances, wavelength, pixel)
+    inner = torch.fft.fftshift(
+        torch.fft.ifft2(torch.fft.ifftshift(field_b / prefactor, dim=(-2, -1)), dim=(-2, -1)),
+        dim=(-2, -1),
+    )
+    result = inner * quad_in.conj()
+    return result.squeeze(0) if unbatched else result
 
 def fresnel_reconstruct(
     phase: torch.Tensor,
@@ -133,6 +166,9 @@ def dequantize_phase_u8(u8: torch.Tensor | np.ndarray) -> torch.Tensor | np.ndar
 
 def ste_quantize(phase: torch.Tensor) -> torch.Tensor:
     """Квантование фазы с прямым пропуском градиента (Straight-Through Estimator)."""
-    phase_wrapped = torch.remainder(phase + math.pi, 2.0 * math.pi) - math.pi
+    wrapped = torch.remainder(phase + math.pi, 2.0 * math.pi) - math.pi
+    # Фаза сети уже в диапазоне. Повторное remainder сдвигает float32 на несколько
+    # ulp и может поменять округление в PNG у границы шага квантования.
+    phase_wrapped = torch.where((phase >= -math.pi) & (phase <= math.pi), phase, wrapped)
     q_phase = dequantize_phase_u8(quantize_phase_u8(phase_wrapped))
     return phase_wrapped + (q_phase - phase_wrapped).detach()

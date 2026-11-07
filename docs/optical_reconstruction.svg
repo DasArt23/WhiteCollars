@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="520" viewBox="0 0 1160 520">
+ <rect width="1160" height="520" fill="#f7f9fc"/>
+ <g font-family="sans-serif" fill="#14243a">
+  <text x="45" y="48" font-size="25" font-weight="bold">Оптическое восстановление четырёх изображений</text>
+  <text x="45" y="82" font-size="17">Плоская волна → фазовый ДОЭ на ПВМС → четыре плоскости наблюдения</text>
+  <path d="M60 180H290 M60 250H290 M60 320H290" stroke="#20859a" stroke-width="4"/>
+  <path d="M272 170L290 180L272 190 M272 240L290 250L272 260 M272 310L290 320L272 330" fill="none" stroke="#20859a" stroke-width="4"/>
+  <text x="60" y="140" font-size="19">Лазер λ = 532 нм</text>
+  <rect x="305" y="125" width="35" height="240" rx="4" fill="#4158a8"/>
+  <text x="240" y="407" font-size="18">ПВМС / ДОЭ</text>
+  <text x="210" y="435" font-size="16">128×128; пиксель 10 мкм</text>
+  <text x="216" y="460" font-size="16">φ ∈ [−π, π], H = exp(jφ)</text>
+  <path d="M342 165L1040 110 M342 245H1040 M342 325L1040 380" stroke="#20859a" stroke-width="2" opacity=".5"/>
+  <g fill="#e0eaf7" stroke="#4158a8" stroke-width="2">
+   <rect x="510" y="140" width="65" height="220"/>
+   <rect x="670" y="140" width="65" height="220"/>
+   <rect x="830" y="140" width="65" height="220"/>
+   <rect x="990" y="140" width="65" height="220"/>
+  </g>
+  <g font-size="17" text-anchor="middle">
+   <text x="542" y="122">Изображение 1</text><text x="702" y="122">Изображение 2</text>
+   <text x="862" y="122">Изображение 3</text><text x="1022" y="122">Изображение 4</text>
+   <text x="542" y="393">z₁ = 24,1 мм</text><text x="702" y="393">z₂ = 25,3 мм</text>
+   <text x="862" y="393">z₃ = 26,5 мм</text><text x="1022" y="393">z₄ = 27,7 мм</text>
+   <text x="542" y="424">Δx ≈ 10,02 мкм</text><text x="702" y="424">10,52 мкм</text>
+   <text x="862" y="424">11,01 мкм</text><text x="1022" y="424">11,51 мкм</text>
+  </g>
+  <text x="490" y="467" font-size="17">Δx(z) = λz / (N·PIXEL); сравнивается модуль |K|</text>
+  <text x="490" y="495" font-size="14">Схема условная, расстояния показаны без соблюдения масштаба.</text>
+ </g>
+</svg>

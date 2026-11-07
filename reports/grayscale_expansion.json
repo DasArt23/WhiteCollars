@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "counts": {
+    "diagnostic": 1,
+    "train": 2000,
+    "validation": 100,
+    "test": 100,
+    "stress_validation": 100
+  },
+  "checked_images": 9204,
+  "exact_duplicates": 0,
+  "source_pixels_preserved": true,
+  "new_family_sequences": 752,
+  "new_intermediate_pixel_share_mean": 0.9190943908691406,
+  "new_unique_gray_levels_median": 241.0,
+  "limitations": [
+    "Процедурные полутона не заменяют реальные фотографии.",
+    "Нет гарантии качества на неизвестных данных организаторов.",
+    "Новые stress-цели не участвуют в обучении или выборе checkpoint."
+  ]
+}

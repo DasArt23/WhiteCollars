@@ -1,19 +1,21 @@
 """Reproducible diagnostic targets and procedural amplitude dataset (Pillow only)."""
 import argparse
-from collections import Counter
 import hashlib
 import json
 import math
-from pathlib import Path
 import random
 import shutil
+from collections import Counter
+from pathlib import Path
 
 import PIL
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageStat
 
+from doe_eval.config import DISTANCES, N
+
 VERSION = '0.2.0'
-SIZE, SCALE = 128, 4
-Z = [24.1, 25.3, 26.5, 27.7]
+SIZE, SCALE = N, 4
+Z = [round(z * 1e3, 1) for z in DISTANCES]
 FAMILIES = ['geometry', 'digit', 'letter', 'icon', 'strokes', 'composition']
 GEOMETRY = ['circle', 'ring', 'rectangle', 'triangle', 'cross', 'ellipse',
             'diamond', 'star', 'pentagon', 'spots']
@@ -181,7 +183,7 @@ def verify(manifest_path):
         counts[split] += 1
         for rel in record['images']:
             with Image.open(manifest_path.parent / rel) as im:
-                assert im.format == 'PNG' and im.mode == 'L' and im.size == (128, 128), rel
+                assert im.format == 'PNG' and im.mode == 'L' and im.size == (SIZE, SIZE), rel
                 assert im.getextrema()[0] == 0 and im.getextrema()[1] > 0, rel
                 assert ImageStat.Stat(im).stddev[0] > 0, rel
                 digest = hashlib.sha256(im.tobytes()).hexdigest()
@@ -189,7 +191,7 @@ def verify(manifest_path):
                 seen_pixels[digest] = rel
                 # Bounding box of visible signal; includes blur down to 3/255.
                 b = im.point(lambda v: 255 if v > 2 else 0).getbbox()
-                margin = min(b[0], b[1], 128-b[2], 128-b[3])
+                margin = min(b[0], b[1], SIZE-b[2], SIZE-b[3])
                 assert margin >= 4, f'Signal touches boundary: {rel}'
                 min_margin = min(min_margin, margin)
                 hashes[rel] = digest

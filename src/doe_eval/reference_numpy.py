@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
-from .config import DISTANCES, N, PIXEL, WAVELENGTH
+from .config import DISTANCES, PIXEL, WAVELENGTH, N
 
 
 def fresnel_reconstruct_numpy(

@@ -3,17 +3,20 @@ statistics and approximate near-duplicate screening. No training or data edits.
 Run from repository root: python -m dataset.audit --manifest ... --out ...
 """
 import argparse
-from collections import Counter
 import hashlib
 import json
-from pathlib import Path
 import platform
+from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import PIL
 from PIL import Image, ImageDraw
 
-DISTANCES = [24.1, 25.3, 26.5, 27.7]
+from doe_eval.config import DISTANCES as DISTANCES_M
+from doe_eval.config import IMAGE_FILENAMES, N
+
+DISTANCES = [round(z * 1e3, 1) for z in DISTANCES_M]
 SPLITS = ('diagnostic', 'train', 'validation', 'test')
 
 
@@ -53,17 +56,17 @@ def inspect(manifest, reference=None, near=0.95):
             if not path.is_relative_to(root) or Path(rel).parts[0] != split:
                 errors.append(f'Unsafe/wrong-split path: {rel}')
                 continue
-            if Path(rel).name != f'{c+1:02d}.png':
+            if Path(rel).name != IMAGE_FILENAMES[c]:
                 errors.append(f'Wrong channel filename: {rel}')
             try:
                 with Image.open(path) as im:
-                    if im.format != 'PNG' or im.mode != 'L' or im.size != (128, 128):
-                        raise ValueError('Expected PNG L 128x128')
+                    if im.format != 'PNG' or im.mode != 'L' or im.size != (N, N):
+                        raise ValueError(f'Expected PNG L {N}x{N}')
                     arr = np.asarray(im).copy()
                     if arr.min() != 0 or arr.max() == 0 or arr.std() == 0:
                         raise ValueError('Missing foreground/background or constant image')
                     ys, xs = np.nonzero(arr > 2)
-                    margin = int(min(xs.min(), ys.min(), 127-xs.max(), 127-ys.max()))
+                    margin = int(min(xs.min(), ys.min(), N-1-xs.max(), N-1-ys.max()))
                     if margin < 4:
                         errors.append(f'Signal too close to edge: {rel}')
                     digest = hashlib.sha256(arr.tobytes()).hexdigest()

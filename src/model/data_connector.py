@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import json
 from collections import Counter
 from dataclasses import dataclass, field
-import json
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
-from PIL import Image, ImageStat
 import torch
 from torch.utils.data import DataLoader, Dataset
 
@@ -18,8 +17,14 @@ from doe_eval import (
     ssim_global_torch,
     ste_quantize,
 )
-from doe_eval.config import DISTANCES, N
-from doe_eval.io import save_doe_png
+from doe_eval.config import (
+    DEFAULT_COMPARE,
+    DEFAULT_MANIFEST,
+    DEFAULT_NORM,
+    DISTANCES,
+    NUM_PLANES,
+)
+from doe_eval.io import load_target_png, save_doe_png
 
 EXPECTED_FORMAT = "doe-manifest/1"
 EXPECTED_DISTANCES_MM = [round(z * 1e3, 1) for z in DISTANCES]  # [24.1, 25.3, 26.5, 27.7]
@@ -61,27 +66,12 @@ class ManifestData:
 
 
 def _validate_and_load_png(path: Path) -> np.ndarray:
-    """Строгая загрузка целевого PNG 128x128, режим 'L', 8 бит -> float32 [0, 1]."""
-    if not path.is_file():
-        raise FileNotFoundError(f"Файл целевой картинки не найден: {path}")
-    with Image.open(path) as im:
-        if im.format != "PNG":
-            raise ValueError(f"{path}: ожидался PNG, получен {im.format}")
-        if im.mode != "L":
-            raise ValueError(f"{path}: ожидался режим 'L' (8 бит), получен '{im.mode}'")
-        if im.size != (N, N):
-            raise ValueError(f"{path}: ожидался размер ({N}, {N}), получен {im.size}")
-        lo, hi = im.getextrema()
-        if lo != 0 or hi == 0:
-            raise ValueError(f"{path}: нарушен контракт сигнала/фона (min={lo}, max={hi})")
-        if ImageStat.Stat(im).stddev[0] <= 0:
-            raise ValueError(f"{path}: нулевая дисперсия изображения")
-        arr = np.array(im, dtype=np.float32) / 255.0
-    return arr
+    """Общий строгий контракт ТЗ: PNG L, N×N, float32 в [0,1]."""
+    return load_target_png(path)
 
 
 def load_manifest(
-    manifest_path: str | Path = "data/manifest.json",
+    manifest_path: str | Path = DEFAULT_MANIFEST,
     verify_images: bool = True,
 ) -> ManifestData:
     """
@@ -131,6 +121,15 @@ def load_manifest(
         for rel in imgs:
             if str(rel).startswith("previews/"):
                 raise ValueError(f"{sid}: файлы из previews/ не должны входить в samples ({rel})")
+            path = (root_dir / rel).resolve()
+            if not path.is_relative_to(root_dir.resolve()) or Path(rel).parts[0] != split:
+                raise ValueError(f"{sid}: путь выходит за датасет или относится к другому split: {rel}")
+        if [Path(rel).name for rel in imgs] not in (
+            [f"{i}.png" for i in range(1, NUM_PLANES + 1)],
+            [f"{i:02d}.png" for i in range(1, NUM_PLANES + 1)],
+        ):
+            raise ValueError(f"{sid}: неверный порядок файлов плоскостей")
+        for rel in imgs:
             if verify_images:
                 _validate_and_load_png(root_dir / rel)
 
@@ -174,7 +173,7 @@ def load_manifest(
 class ManifestQuartetDataset(Dataset):
     def __init__(
         self,
-        manifest: str | Path | ManifestData = "src/dataset/data/manifest.json",
+        manifest: str | Path | ManifestData = DEFAULT_MANIFEST,
         split: str = "train",
         smoke_limit: int | None = None,
         augment_channel_shuffle: bool = False,
@@ -215,6 +214,10 @@ class ManifestQuartetDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, str]:
+        worker = torch.utils.data.get_worker_info()
+        if worker is not None and getattr(self, "_worker_seed", None) != worker.seed:
+            self.rng = np.random.default_rng(worker.seed)
+            self._worker_seed = worker.seed
         record = self.samples[idx]
         if self._cache is not None:
             arr = self._cache[idx].copy()
@@ -236,18 +239,23 @@ class ManifestQuartetDataset(Dataset):
 
 
 def build_dataloaders(
-    manifest_path: str | Path = "data/manifest.json",
-    batch_size: int = 64,          # На V100 спокойно влезает 64 или 128
+    manifest_path: str | Path = DEFAULT_MANIFEST,
+    batch_size: int = 16,
     num_workers: int = 4,
     mode: str = "v1",
     augment_train: bool = False,
-    pin_memory: bool = True,
+    pin_memory: bool | None = None,
+    seed: int = 3701,
 ) -> dict[str, DataLoader]:
     """
     Создаёт загрузчики для обучения и валидации:
-    - mode="train_smoke": 8 четвёрок из train (порядок обучения из TRAINING_METHODS.md)
-    - mode="v1": полный train (200 или 1000) + validation (100) + diagnostic (1) + test (100)
+    - mode="train_smoke": до 8 train / 2 validation / 1 diagnostic / 2 test
+    - mode="v1": полные сплиты из manifest
     """
+    if pin_memory is None:
+        pin_memory = torch.cuda.is_available()
+    if mode not in ("v1", "train_smoke") or batch_size < 1 or num_workers < 0:
+        raise ValueError("mode: v1 | train_smoke; batch_size >= 1; num_workers >= 0")
     m_data = load_manifest(manifest_path, verify_images=False)
     smoke_limit = 8 if mode == "train_smoke" else None
 
@@ -257,16 +265,18 @@ def build_dataloaders(
         smoke_limit=smoke_limit,
         augment_channel_shuffle=augment_train,
         augment_dihedral=False,
+        seed=seed,
     )
-    val_ds = ManifestQuartetDataset(m_data, split="validation")
+    val_ds = ManifestQuartetDataset(m_data, split="validation", smoke_limit=2 if mode == "train_smoke" else None)
     diag_ds = ManifestQuartetDataset(m_data, split="diagnostic")
-    test_ds = ManifestQuartetDataset(m_data, split="test")
+    test_ds = ManifestQuartetDataset(m_data, split="test", smoke_limit=2 if mode == "train_smoke" else None)
 
     return {
         "train": DataLoader(
             train_ds,
             batch_size=min(batch_size, len(train_ds)),
             shuffle=True,
+            generator=torch.Generator().manual_seed(seed),
             num_workers=num_workers,
             pin_memory=pin_memory,
         ),
@@ -299,7 +309,7 @@ def forward_physics_loss(
     w_pearson: float = 0.5,
     w_ssim: float = 0.5,
     use_ste_quantize: bool = True,
-) -> tuple[torch.Tensor, torch.Tensor, dict[str, float]]:
+) -> tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
     """
     Соединяет выход модели pred_phase [B, 128, 128] в [-pi, pi] с мишенями [B, 4, 128, 128]
     через физический симулятор Френеля doe_eval.
@@ -311,7 +321,7 @@ def forward_physics_loss(
 
         phase_eff = ste_quantize(phase_f32) if use_ste_quantize else phase_f32
         recon_amp = fresnel_reconstruct(phase_eff)
-        recon_01 = normalize_reconstructions(recon_amp, norm="max", compare="amplitude")
+        recon_01 = normalize_reconstructions(recon_amp, norm=DEFAULT_NORM, compare=DEFAULT_COMPARE)
 
         p_per_plane = pearson_torch(recon_01, targets_f32)       # [B, 4]
         s_per_plane = ssim_global_torch(recon_01, targets_f32)   # [B, 4]

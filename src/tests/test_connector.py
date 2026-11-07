@@ -7,11 +7,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-import numpy as np
 import pytest
 import torch
 from PIL import Image, ImageDraw
 
+from doe_eval.config import DEFAULT_MANIFEST
 from model import (
     ManifestQuartetDataset,
     build_dataloaders,
@@ -228,9 +228,9 @@ def test_export_predictions_and_cli_eval(mock_anya_dataset: Path, tmp_path: Path
 
 
 # 7. Автоматическая проверка реального датасета Ани (если папка data/ уже лежит в проекте)
-@pytest.mark.skipif(not Path("data/manifest.json").is_file(), reason="Реальный data/manifest.json ещё не скопирован")
+@pytest.mark.skipif(not DEFAULT_MANIFEST.is_file(), reason="Реальный датасет не установлен")
 def test_real_anya_dataset_if_present() -> None:
-    d = load_manifest("data/manifest.json", verify_images=True)
+    d = load_manifest(DEFAULT_MANIFEST, verify_images=True)
     assert d.report.counts["diagnostic"] == 1
     assert d.report.counts["train"] >= 200
     assert d.report.counts["validation"] == 100

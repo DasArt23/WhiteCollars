@@ -12,10 +12,9 @@ import torch
 from PIL import Image
 from skimage.metrics import structural_similarity
 
-from doe_eval.baseline import gerchberg_saxton_multiplane
-from doe_eval.config import DISTANCES, N, PIXEL, WAVELENGTH
+from doe_eval.config import DISTANCES, PIXEL, WAVELENGTH, N
 from doe_eval.demo import save_demo_inputs
-from doe_eval.io import load_doe_png, load_gray_u8_png, save_doe_png, save_recon_png
+from doe_eval.io import load_gray_u8_png, save_doe_png, save_recon_png
 from doe_eval.metrics import (
     pearson,
     pearson_torch,

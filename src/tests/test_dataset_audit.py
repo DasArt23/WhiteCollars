@@ -1,6 +1,5 @@
 """Audit regressions: corruption, exact leakage and frozen evaluation data."""
 import json
-from pathlib import Path
 import shutil
 
 from PIL import Image

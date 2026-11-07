@@ -1,60 +1,38 @@
 from __future__ import annotations
 
-import math
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from doe_eval import pearson_torch, ssim_global_torch
-from doe_eval.config import DISTANCES, N, PIXEL, WAVELENGTH
+from doe_eval.config import DISTANCES, PIXEL, WAVELENGTH, N
+from doe_eval.metrics import ssim_local_7x7_torch
 from doe_eval.physics import (
-    _get_fresnel_kernels,
+    fresnel_inverse_complex,
     fresnel_propagate_complex,
     fresnel_reconstruct,
     normalize_reconstructions,
     ste_quantize,
 )
-from model.data_connector import forward_physics_loss
+
+# Экспериментальный критерий, а не утверждённая организаторами свёртка метрик.
+METRIC_WEIGHTS = (0.35, 0.25, 0.40)  # Pearson, global SSIM, local SSIM
 
 
-def ssim_local_7x7_torch(
-    x: torch.Tensor,
-    y: torch.Tensor,
-    data_range: float = 1.0,
-    win_size: int = 7,
-) -> torch.Tensor:
+def balanced_quality_score(pearson, ssim):
+    """Внутренний критерий выбора, не метрика организаторов.
+
+    Гармоническое среднее штрафует высокий SSIM при плохой корреляции:
+    P=.1/S=.84 даёт .179, тогда как P=.566/S=.127 даёт .207.
+    Отрицательные метрики обнуляются только здесь, в отчётах остаются исходные.
     """
-    Точный дифференцируемый аналог skimage.metrics.structural_similarity (win_size=7).
-    Работает на тензорах [B, 4, H, W] на GPU и напрямую максимизирует локальный SSIM.
-    Возвращает тензор [B, 4].
-    """
-    pad = win_size // 2
-    c1 = (0.01 * data_range) ** 2
-    c2 = (0.03 * data_range) ** 2
-
-    mu_x = F.avg_pool2d(x, kernel_size=win_size, stride=1, padding=pad)
-    mu_y = F.avg_pool2d(y, kernel_size=win_size, stride=1, padding=pad)
-
-    mu_x2 = mu_x.square()
-    mu_y2 = mu_y.square()
-    mu_xy = mu_x * mu_y
-
-    # Несмещённая оценка дисперсии в окне 7x7 (n / (n - 1) как в skimage sample_covariance=True)
-    n_pix = float(win_size * win_size)
-    cov_norm = n_pix / (n_pix - 1.0)
-
-    sigma_x2 = cov_norm * (F.avg_pool2d(x.square(), kernel_size=win_size, stride=1, padding=pad) - mu_x2).clamp(min=0.0)
-    sigma_y2 = cov_norm * (F.avg_pool2d(y.square(), kernel_size=win_size, stride=1, padding=pad) - mu_y2).clamp(min=0.0)
-    sigma_xy = cov_norm * (F.avg_pool2d(x * y, kernel_size=win_size, stride=1, padding=pad) - mu_xy)
-
-    num = (2.0 * mu_xy + c1) * (2.0 * sigma_xy + c2)
-    den = (mu_x2 + mu_y2 + c1) * (sigma_x2 + sigma_y2 + c2)
-    ssim_map = num / (den + 1e-8)
-
-    # Отступаем от краёв на pad, как делает skimage при расчёте mssim
-    return ssim_map[:, :, pad:-pad, pad:-pad].mean(dim=(-2, -1))
+    if isinstance(pearson, torch.Tensor):
+        p, s = pearson.clamp_min(0), ssim.clamp_min(0)
+        return 2 * p * s / (p + s).clamp_min(1e-8)
+    p, s = max(float(pearson), 0.), max(float(ssim), 0.)
+    return 2 * p * s / max(p + s, 1e-8)
 
 
 def fresnel_backward_to_slm(
@@ -64,21 +42,12 @@ def fresnel_backward_to_slm(
     wavelength: float = WAVELENGTH,
     pixel: float = PIXEL,
 ) -> torch.Tensor:
-    """
-    Точный аналитический обратный (Adjoint) оператор дифракции Френеля с одним БПФ.
-    Переносит комплексные поля с 4 плоскостей [B, 4, 128, 128] обратно в плоскость ДОЭ (z=0).
-    """
-    quad_in, prefactor = _get_fresnel_kernels(
-        target_field.device, distances, wavelength, pixel
-    )
-    prefactor_unit = torch.polar(torch.ones_like(prefactor.real), prefactor.angle())
-    dephased = target_field * prefactor_unit.conj()
+    """Обратное распространение каждой плоскости и взвешенная сумма в ДОЭ.
 
-    ifft_term = torch.fft.fftshift(
-        torch.fft.ifft2(torch.fft.ifftshift(dephased, dim=(-2, -1)), dim=(-2, -1)),
-        dim=(-2, -1),
-    )
-    per_plane_slm = ifft_term * quad_in.conj()  # [B, 4, N, N] complex64
+    Полный inverse включает 1/prefactor, поэтому масштабирование плоскостей
+    согласовано с классическим GS и основным оператором Френеля.
+    """
+    per_plane_slm = fresnel_inverse_complex(target_field, distances, wavelength, pixel)
 
     if plane_weights is not None:
         w = F.softmax(plane_weights, dim=0).view(1, -1, 1, 1)
@@ -246,7 +215,7 @@ class FourierUNetRefiner(nn.Module):
 
 class HoloUnrollNet(nn.Module):
     """
-    Архитектура-победитель: Dual-Domain Deep Unrolled Fourier-ConvNeXt Network.
+    Экспериментальная архитектура: Dual-Domain Deep Unrolled Fourier-ConvNeXt Network.
     Работает одновременно в пространстве 4 плоскостей объектов (гашение кросс-тока и спекла)
     и в частотной плоскости ДОЭ (глобальный FNO + фазорная коррекция на единичной окружности).
     """
@@ -257,6 +226,8 @@ class HoloUnrollNet(nn.Module):
         base_dim: int = 56,
     ) -> None:
         super().__init__()
+        if unroll_steps < 1 or base_dim < 8 or base_dim % 8:
+            raise ValueError("unroll_steps >= 1; base_dim должен быть кратен 8 и не меньше 8")
         self.unroll_steps = unroll_steps
         self.base_dim = base_dim
 
@@ -301,7 +272,7 @@ class HoloUnrollNet(nn.Module):
 
         # Шаг 1: Предсказание начальной фазы в плоскостях z1..z4 и перенос в z=0
         init_raw = self.target_phase_init(targets).view(bsz, 4, 2, N, N)
-        init_angle = torch.atan2(init_raw[:, :, 1], init_raw[:, :, 0])
+        init_angle = torch.atan2(init_raw[:, :, 1].float(), init_raw[:, :, 0].float())
 
         with torch.amp.autocast("cuda", enabled=False):
             targets_f32 = targets.float()
@@ -379,9 +350,9 @@ class HoloUnrollNet(nn.Module):
 def compute_sota_physics_loss(
     pred_phase: torch.Tensor,
     targets: torch.Tensor,
-    w_pearson: float = 0.35,
-    w_ssim_global: float = 0.25,
-    w_ssim_local: float = 0.40,
+    w_pearson: float = METRIC_WEIGHTS[0],
+    w_ssim_global: float = METRIC_WEIGHTS[1],
+    w_ssim_local: float = METRIC_WEIGHTS[2],
     w_bg_suppress: float = 0.25,
     w_worst_plane: float = 0.15,
 ) -> tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
@@ -393,14 +364,6 @@ def compute_sota_physics_loss(
       4. Dark-Zone Background Suppression (вычищает спекл на чёрном фоне, кратно поднимая ssim_skimage);
       5. Worst-Plane Balancing (подтягивает самую сложную плоскость из 4).
     """
-    _, recon_01, _ = forward_physics_loss(
-        pred_phase,
-        targets,
-        w_pearson=0.5,
-        w_ssim=0.5,
-        use_ste_quantize=True,
-    )
-
     with torch.amp.autocast("cuda", enabled=False):
         targets_f32 = targets.float()
         phase_eff = ste_quantize(pred_phase.float())
@@ -448,12 +411,13 @@ def hybrid_infer_phase(
     polish_steps: int = 20,
     polish_lr: float = 0.06,
 ) -> torch.Tensor:
+    """Прямой проход сети и необязательное уточнение квантованной фазы.
+
+    Выбирает лучший кандидат отдельно для каждого примера, включая исходный
+    прогноз и результат последнего шага. Скорость измеряется на целевом GPU.
     """
-    Быстрый гибридный инференс (Архитектура №5):
-      - Прямой проход Dual-Domain HoloUnrollNet (~5.5 мс на V100)
-      - Быстрый векторный микро-дожим по триединой метрике (Pearson + SSIM_global + SSIM_local_7x7)
-        за ~8-9 мс (суммарно ~14 мс — в 6-7 раз быстрее классического GS-200!).
-    """
+    if polish_steps < 0 or polish_lr <= 0:
+        raise ValueError("polish_steps >= 0 и polish_lr > 0")
     model.eval()
     with torch.no_grad():
         init_phase = model(targets)
@@ -475,8 +439,9 @@ def hybrid_infer_phase(
 
         best_phase = phase.detach().clone()
         best_score = torch.full((targets.shape[0],), -1e9, device=targets.device)
+        best_ssim = torch.full_like(best_score, -1e9)
 
-        for _ in range(polish_steps):
+        for step in range(polish_steps + 1):
             optimizer.zero_grad(set_to_none=True)
             wrapped = torch.atan2(torch.sin(phase), torch.cos(phase))
             q_phase = ste_quantize(wrapped)
@@ -488,12 +453,17 @@ def hybrid_infer_phase(
             sl_val = ssim_local_7x7_torch(recon_01, targets_f32).mean(dim=1)
 
             # Оцениваем качество сразу по всем 3 целевым метрикам
-            sample_scores = 0.35 * p_val + 0.25 * sg_val + 0.40 * sl_val
+            sample_scores = sum(w * metric for w, metric in zip(METRIC_WEIGHTS, (p_val, sg_val, sl_val)))
+            quality_scores = balanced_quality_score(p_val, sl_val)
 
             with torch.no_grad():
-                improved = sample_scores > best_score
-                best_score = torch.maximum(best_score, sample_scores)
+                improved = (quality_scores > best_score) | ((quality_scores == best_score) & (sl_val > best_ssim))
+                best_score = torch.where(improved, quality_scores, best_score)
+                best_ssim = torch.where(improved, sl_val, best_ssim)
                 best_phase[improved] = wrapped.detach()[improved]
+
+            if step == polish_steps:
+                break
 
             bg_pen = (recon_01.square() * bg_mask).mean()
             loss = (1.0 - sample_scores).mean() + 0.20 * bg_pen
