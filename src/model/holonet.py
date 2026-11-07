@@ -24,6 +24,7 @@ from doe_eval.physics import (
 # Вспомогательные веса; главный член loss — ошибка формы амплитуды.
 METRIC_WEIGHTS = (0.20, 0.10, 0.30)  # Pearson, global SSIM, local SSIM
 LOSS_VERSION = "visual-fit-v2"
+WORST_PLANE_WEIGHT = 0.15
 
 
 def fresnel_backward_to_slm(
@@ -416,7 +417,7 @@ def _image_objective(
     w_ssim_global: float = METRIC_WEIGHTS[1],
     w_ssim_local: float = METRIC_WEIGHTS[2],
     w_bg_suppress: float = 0.0,
-    w_worst_plane: float = 0.15,
+    w_worst_plane: float = WORST_PLANE_WEIGHT,
 ):
     """Общий критерий обучения и уточнения; форма важнее совпадения чёрного фона."""
     recon = normalize_reconstructions(recon_amp)
@@ -430,6 +431,9 @@ def _image_objective(
     ) / foreground.sum((-2, -1)).clamp_min(1e-8)
     crosstalk = plane_crosstalk_error_torch(recon, targets)
     visual = shape + 1.5 * foreground_error + 10.0 * crosstalk
+    # Один критерий для выбора checkpoint и кандидата после уточнения фазы.
+    # Худшая плоскость уже штрафуется в loss и не должна теряться при выборе.
+    selection_error = visual.mean(dim=-1) + w_worst_plane * shape.amax(dim=-1)
     loss = (
         visual
         + w_pearson * (1 - p)
@@ -454,6 +458,9 @@ def _image_objective(
         "foreground_error": foreground_error,
         "crosstalk": crosstalk,
         "visual_error": visual,
+        "selection_error": selection_error,
+        "worst_pearson": p.amin(dim=-1),
+        "worst_ssim_local": sl.amin(dim=-1),
     }
     return loss, recon, planes
 
@@ -465,7 +472,7 @@ def compute_sota_physics_loss(
     w_ssim_global: float = METRIC_WEIGHTS[1],
     w_ssim_local: float = METRIC_WEIGHTS[2],
     w_bg_suppress: float = 0.0,
-    w_worst_plane: float = 0.15,
+    w_worst_plane: float = WORST_PLANE_WEIGHT,
 ) -> tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
     """Квантованная физика: RMS-ошибка формы и вспомогательные метрики.
 
@@ -529,7 +536,7 @@ def hybrid_infer_phase(
             q_phase = ste_quantize(wrapped)
             recon_amp = fresnel_reconstruct(q_phase)
             loss, _, planes = _image_objective(recon_amp, targets_f32)
-            quality_scores = -planes["visual_error"].mean(dim=1)
+            quality_scores = -planes["selection_error"]
             sl_val = planes["ssim_local"].mean(dim=1)
 
             with torch.no_grad():

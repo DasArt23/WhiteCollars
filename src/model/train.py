@@ -28,6 +28,7 @@ from model.data_connector import (
 from model.holonet import (
     LOSS_VERSION,
     METRIC_WEIGHTS,
+    WORST_PLANE_WEIGHT,
     HoloUnrollNet,
     compute_sota_physics_loss,
     hybrid_infer_phase,
@@ -47,6 +48,9 @@ def evaluate_loader(
     total_local = 0.0
     total_shape = 0.0
     total_visual = 0.0
+    total_selection = 0.0
+    total_worst_pearson = 0.0
+    total_worst_ssim = 0.0
     total_samples = 0
 
     for targets, _ in loader:
@@ -61,6 +65,9 @@ def evaluate_loader(
         total_local += float(metrics["ssim_local"].item()) * bsz
         total_shape += float(metrics["shape_error"].item()) * bsz
         total_visual += float(metrics["visual_error"].item()) * bsz
+        total_selection += float(metrics["selection_error"].item()) * bsz
+        total_worst_pearson += float(metrics["worst_pearson"].item()) * bsz
+        total_worst_ssim += float(metrics["worst_ssim_local"].item()) * bsz
         total_samples += bsz
 
     if total_samples == 0:
@@ -73,7 +80,10 @@ def evaluate_loader(
         "ssim_skimage": total_local / denom,
         "shape_error": total_shape / denom,
         "visual_error": total_visual / denom,
-        "score": -total_visual / denom,
+        "selection_error": total_selection / denom,
+        "worst_pearson": total_worst_pearson / denom,
+        "worst_ssim_skimage": total_worst_ssim / denom,
+        "score": -total_selection / denom,
     }
 
 
@@ -209,9 +219,42 @@ def train_model(
         flush=True,
     )
 
-    best_score = -float("inf")
-    best_ssim = -1.0
-    best_state = None
+    def save_checkpoint(epoch: int, val_metrics: dict[str, float]):
+        state = deepcopy(model.state_dict())
+        torch.save(
+            {
+                "model_type": "HoloUnrollNet",
+                "unroll_steps": unroll_steps,
+                "base_dim": base_dim,
+                "epoch": epoch,
+                "val_metrics": val_metrics,
+                "seed": seed,
+                "manifest_sha256": hashlib.sha256(manifest_p.read_bytes()).hexdigest(),
+                "metric_weights": METRIC_WEIGHTS,
+                "loss_version": LOSS_VERSION,
+                "equalize_plane_power": model.equalize_plane_power,
+                "phase_carrier_seed": model.phase_carrier_seed,
+                "training_revision": "stable-carrier-v3",
+                "selection_revision": "visual-worst-plane-v1",
+                "worst_plane_weight": WORST_PLANE_WEIGHT,
+                "precision": precision,
+                "initial_validation": initial_metrics,
+                "checkpoint_criterion": "mean visual error + worst-plane shape penalty; SSIM breaks ties",
+                "quantization": "uint8-ste",
+                "state_dict": state,
+            },
+            ckpt_path,
+        )
+        return state
+
+    # Не заменяем хорошую инициализацию ухудшившейся первой эпохой.
+    best_score = initial_metrics["score"]
+    best_ssim = initial_metrics["ssim_skimage"]
+    best_epoch = 0
+    best_state = save_checkpoint(0, initial_metrics)
+    save_validation_previews(
+        model, loaders["validation"], device, ckpt_path.parent / "previews"
+    )
     history = []
 
     for epoch in range(1, epochs + 1):
@@ -297,6 +340,9 @@ def train_model(
             "val_score": val_metrics["score"],
             "val_shape_error": val_metrics["shape_error"],
             "val_visual_error": val_metrics["visual_error"],
+            "val_selection_error": val_metrics["selection_error"],
+            "val_worst_pearson": val_metrics["worst_pearson"],
+            "val_worst_ssim_skimage": val_metrics["worst_ssim_skimage"],
             "optimizer_updates": updates,
             "amp_skipped": skipped,
             "amp_scale": scaler.get_scale(),
@@ -320,31 +366,8 @@ def train_model(
         if is_best:
             best_score = val_metrics["score"]
             best_ssim = val_metrics["ssim_skimage"]
-            best_state = deepcopy(model.state_dict())
-            torch.save(
-                {
-                    "model_type": "HoloUnrollNet",
-                    "unroll_steps": unroll_steps,
-                    "base_dim": base_dim,
-                    "epoch": epoch,
-                    "val_metrics": val_metrics,
-                    "seed": seed,
-                    "manifest_sha256": hashlib.sha256(
-                        manifest_p.read_bytes()
-                    ).hexdigest(),
-                    "metric_weights": METRIC_WEIGHTS,
-                    "loss_version": LOSS_VERSION,
-                    "equalize_plane_power": model.equalize_plane_power,
-                    "phase_carrier_seed": model.phase_carrier_seed,
-                    "training_revision": "stable-carrier-v3",
-                    "precision": precision,
-                    "initial_validation": initial_metrics,
-                    "checkpoint_criterion": "minimum shape/foreground/crosstalk error; SSIM breaks ties",
-                    "quantization": "uint8-ste",
-                    "state_dict": best_state,
-                },
-                ckpt_path,
-            )
+            best_epoch = epoch
+            best_state = save_checkpoint(epoch, val_metrics)
             save_validation_previews(
                 model, loaders["validation"], device, ckpt_path.parent / "previews"
             )
@@ -357,6 +380,7 @@ def train_model(
             f"Val P: {val_metrics['pearson']:.4f} SSIM global: {val_metrics['ssim_global']:.4f} "
             f"SSIM skimage: {val_metrics['ssim_skimage']:.4f} "
             f"Shape: {val_metrics['shape_error']:.4f} Visual: {val_metrics['visual_error']:.4f} | "
+            f"Worst P: {val_metrics['worst_pearson']:.4f} "
             f"Updates: {updates}/{len(loaders['train'])} AMP skipped: {skipped} "
             f"Gain: {row['visual_gain_from_initial']:+.4f}",
             flush=True,
@@ -370,8 +394,13 @@ def train_model(
     )
 
     print(
-        f"\nСохранены лучшие веса модели: {ckpt_path} (Best Val Visual Error: {-best_score:.4f}; меньше — лучше)"
+        f"\nСохранены лучшие веса модели: {ckpt_path} "
+        f"(эпоха {best_epoch}; Selection Error: {-best_score:.4f}; меньше — лучше)"
     )
+    if best_epoch == 0:
+        print(
+            "Обучение не улучшило начальную модель по критерию выбора; сохранён epoch=0."
+        )
     print("Экспорт предсказаний в preds/val и preds/diag...")
     export_split_with_optional_polish(
         model,

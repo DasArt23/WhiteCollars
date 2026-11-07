@@ -138,7 +138,7 @@ def _scores(phase, targets):
     return torch.stack(
         [
             -compute_sota_physics_loss(p.unsqueeze(0), t.unsqueeze(0))[2][
-                "visual_error"
+                "selection_error"
             ]
             for p, t in zip(phase, targets)
         ]
@@ -183,7 +183,53 @@ def test_validation_reports_same_local_ssim_as_final_evaluation():
         ]
     )
     assert metrics["ssim_skimage"] == pytest.approx(expected, abs=2e-5)
-    assert metrics["score"] == -metrics["visual_error"]
+    assert metrics["score"] == -metrics["selection_error"]
+    assert metrics["selection_error"] > metrics["visual_error"]
+
+
+def test_coherent_interference_global_phase_and_fresnel_power():
+    generator = torch.Generator().manual_seed(3701)
+    phase = torch.rand(N, N, generator=generator) * (2 * math.pi) - math.pi
+    field = fresnel_propagate_complex(phase)
+    opposite = fresnel_propagate_complex(phase + math.pi)
+    scale = torch.tensor([N / (WAVELENGTH * z) for z in DISTANCES])[:, None, None]
+    normalized = field / scale
+    # Для FFT без norm: mean(|K|²) = N²/(lambda*z)² при |H|=1.
+    # Формула из ТЗ не содержит множителя площади входного пикселя.
+    torch.testing.assert_close(
+        normalized.abs().square().mean((-2, -1)), torch.ones(4), rtol=5e-6, atol=5e-6
+    )
+    # Противофаза меняет знак поля, но не интенсивность отдельного пучка.
+    assert torch.linalg.vector_norm(
+        (opposite + field) / scale
+    ) < 1e-6 * torch.linalg.vector_norm(normalized)
+    torch.testing.assert_close(
+        ((field + field) / scale).abs().square(),
+        4 * normalized.abs().square(),
+    )
+    shifted = fresnel_propagate_complex(phase + 0.63) / scale
+    assert torch.linalg.vector_norm(
+        shifted.abs() - normalized.abs()
+    ) < 1e-6 * torch.linalg.vector_norm(normalized.abs())
+
+
+def test_selection_includes_worst_plane_and_matches_training_penalty():
+    from model.holonet import METRIC_WEIGHTS, WORST_PLANE_WEIGHT, _image_objective
+
+    generator = torch.Generator().manual_seed(15)
+    target = torch.rand(2, 4, N, N, generator=generator)
+    amplitude = torch.rand(2, 4, N, N, generator=generator)
+    loss, _, planes = _image_objective(amplitude, target)
+    expected = planes["visual_error"].mean(-1) + WORST_PLANE_WEIGHT * planes[
+        "shape_error"
+    ].amax(-1)
+    torch.testing.assert_close(planes["selection_error"], expected)
+    auxiliary = sum(
+        weight * (1 - planes[key]).mean()
+        for weight, key in zip(METRIC_WEIGHTS, ["pearson", "ssim_global", "ssim_local"])
+    )
+    torch.testing.assert_close(loss, expected.mean() + auxiliary)
+    torch.testing.assert_close(planes["worst_pearson"], planes["pearson"].amin(-1))
 
 
 def test_shape_error_rejects_dim_objects_and_unrelated_bright_peak():

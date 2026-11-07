@@ -2,7 +2,7 @@
   "command": "make check",
   "device": "cpu",
   "torch": "2.10.0+cu126",
-  "pytest_passed": 43,
+  "pytest_passed": 45,
   "pytest_skipped": 0,
   "reference_relative_error": 1.12e-07,
   "ruff": "passed",
@@ -10,5 +10,6 @@
   "docker_build": "not run: Docker daemon access denied",
   "network_training": "not started: user will run training",
   "loss_version": "visual-fit-v2",
-  "training_revision": "stable-carrier-v3"
+  "training_revision": "stable-carrier-v3",
+  "selection_revision": "visual-worst-plane-v1"
 }
