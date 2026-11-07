@@ -171,7 +171,6 @@ def load_manifest(
         report=report,
     )
 
-
 class ManifestQuartetDataset(Dataset):
     def __init__(
         self,
@@ -235,23 +234,20 @@ class ManifestQuartetDataset(Dataset):
 
         return torch.from_numpy(arr), record.sample_id
 
+
 def build_dataloaders(
-    manifest_path: str | Path = "src/dataset/data/manifest.json",
-    batch_size: int = 64,
+    manifest_path: str | Path = "data/manifest.json",
+    batch_size: int = 64,          # На V100 спокойно влезает 64 или 128
     num_workers: int = 4,
     mode: str = "v1",
     augment_train: bool = False,
-    pin_memory: bool | None = None,
+    pin_memory: bool = True,
 ) -> dict[str, DataLoader]:
     """
     Создаёт загрузчики для обучения и валидации:
-    - mode="train_smoke": первые 8 четвёрок из train
-    - mode="v1": полный train + validation + diagnostic + test
+    - mode="train_smoke": 8 четвёрок из train (порядок обучения из TRAINING_METHODS.md)
+    - mode="v1": полный train (200 или 1000) + validation (100) + diagnostic (1) + test (100)
     """
-    use_pin = torch.cuda.is_available() if pin_memory is None else pin_memory
-    nw = num_workers if torch.cuda.is_available() else 0
-    keep_workers = nw > 0
-
     m_data = load_manifest(manifest_path, verify_images=False)
     smoke_limit = 8 if mode == "train_smoke" else None
 
@@ -271,17 +267,15 @@ def build_dataloaders(
             train_ds,
             batch_size=min(batch_size, len(train_ds)),
             shuffle=True,
-            num_workers=nw,
-            pin_memory=use_pin,
-            persistent_workers=keep_workers,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
         ),
         "validation": DataLoader(
             val_ds,
             batch_size=batch_size,
             shuffle=False,
-            num_workers=nw,
-            pin_memory=use_pin,
-            persistent_workers=keep_workers,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
         ),
         "diagnostic": DataLoader(
             diag_ds,
@@ -293,11 +287,11 @@ def build_dataloaders(
             test_ds,
             batch_size=batch_size,
             shuffle=False,
-            num_workers=nw,
-            pin_memory=use_pin,
-            persistent_workers=keep_workers,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
         ),
     }
+
 
 def forward_physics_loss(
     pred_phase: torch.Tensor,

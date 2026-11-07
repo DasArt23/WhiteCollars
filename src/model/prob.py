@@ -1,138 +1,82 @@
-"""Predict one DOE from four images and display the saved results."""
+"""Synthesize a DOE and reconstruct all four observation planes."""
 import argparse
 from datetime import datetime
 import json
 from pathlib import Path
 import sys
 
-import torch
 from PIL import Image
+import torch
 
-SRC = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
+SRC = ROOT.parent
 if __package__ in (None, ""):
     sys.path.insert(0, str(SRC))
 
-from model.data_connector import (
-    ManifestData,
-    ManifestQuartetDataset,
-    ManifestReport,
-    ManifestSample,
-    build_dataloaders,
-)
-from model.fresnel import DISTANCES, dequantize_phase_u8, quantize_phase_u8, reconstruct
-from model.metrics import compare_images
-from model.network import DOENet, PhaseNet
-from model.train import fit
+from doe_eval import DISTANCES, quantize_phase_u8, dequantize_phase_u8
+from model.data_connector import ManifestData, ManifestQuartetDataset, ManifestReport, ManifestSample
+from model.importance import ARCHITECTURE, LEGACY_ARCHITECTURE, ImportanceDOE
+from model.train_importance import reconstruct, score
 
 
 def main(argv=None, *, sample_id=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("images", nargs="*", type=Path, help="Four PNGs ordered by distance")
-    parser.add_argument("--weights", type=Path, help="Use a specific trained .pt file")
+    parser.add_argument("images", nargs="*", type=Path, help="Four PNGs in increasing distance order")
+    parser.add_argument("--weights", type=Path, help="ImportanceDOE checkpoint")
+    parser.add_argument("--manifest", type=Path, default=SRC / "dataset/data/manifest.json")
     parser.add_argument("--split", choices=("diagnostic", "test"), default="diagnostic")
     args = parser.parse_args(argv)
-    if args.images and len(args.images) != 4:
-        parser.error("Supply exactly four PNGs for 24.1, 25.3, 26.5 and 27.7 mm")
-    training_manifest = SRC / "dataset" / "data" / "manifest.json"
+    distances = tuple(round(z * 1000, 1) for z in DISTANCES)
     if args.images:
-        sample = ManifestSample(
-            sample_id="custom",
-            split="diagnostic",
-            images=tuple(str(path.resolve()) for path in args.images),
-            distances_mm=tuple(round(z * 1000, 1) for z in DISTANCES),
-            seed=0,
-            generator_version="",
-            params={},
-        )
-        manifest = ManifestData(
-            manifest_path=Path("custom"),
-            root_dir=Path.cwd(),
-            dataset_name="custom",
-            dataset_version="",
-            master_seed=0,
-            samples=[sample],
-            report=ManifestReport({"diagnostic": 1}, 4),
-        )
+        if len(args.images) != 4:
+            parser.error("Supply four images ordered by 24.1, 25.3, 26.5 and 27.7 mm")
+        sample = ManifestSample("custom", "diagnostic", tuple(str(p.resolve()) for p in args.images),
+                                distances, 0, "", {})
+        manifest = ManifestData(Path("custom"), Path.cwd(), "custom", "", 0, [sample],
+                                ManifestReport({"diagnostic": 1}, 4))
+        split = "diagnostic"
     else:
-        manifest = training_manifest
-    split = "diagnostic" if args.images else args.split
-    dataset = ManifestQuartetDataset(manifest, split=split)
+        manifest, split = args.manifest, args.split
+
+    dataset = ManifestQuartetDataset(manifest, split=split, preload=False)
     index = next((i for i, sample in enumerate(dataset.samples) if sample.sample_id == sample_id), None)
     if sample_id is not None and index is None:
         parser.error(f"Sample {sample_id} is absent from split {split}")
     index = 0 if index is None else index
     targets, sample_id = dataset[index]
-    input_paths = [str((dataset.root_dir / image).resolve()) for image in dataset.samples[index].images]
-    print(f"Input sample: {sample_id} ({split})", flush=True)
 
+    results = ROOT / "results"
+    candidates = results.glob("training-importance-*/best.pt")
+    weights = args.weights or max(candidates, key=lambda path: path.stat().st_mtime_ns, default=None)
+    if weights is None or not weights.is_file():
+        parser.error("Run train_importance.py or supply --weights")
+    checkpoint = torch.load(weights, map_location="cpu", weights_only=True)
+    architecture = checkpoint.get("architecture")
+    if architecture not in (ARCHITECTURE, LEGACY_ARCHITECTURE):
+        parser.error("The checkpoint is not from the pixel importance model")
     torch.set_num_threads(4)
-    torch.manual_seed(42)
-    device = torch.device("cpu")
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-    output = SRC / "model" / "results" / f"network-{stamp}"
-    weights_dir = SRC / "model" / "weights"
-    weights = args.weights or max(weights_dir.glob("best-*.pt"), default=None)
-    if weights is None:
-        model = PhaseNet()
-        loaders = build_dataloaders(training_manifest, batch_size=2, num_workers=0, pin_memory=False)
-        print(f"Training neural network on {len(loaders['train'].dataset)} quartets...", flush=True)
-        output.mkdir(parents=True)
-        best_epoch = fit(model, loaders, device, epochs=10, report_dir=output)
-        stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        weights_dir.mkdir(parents=True, exist_ok=True)
-        weights = weights_dir / f"best-{stamp}.pt"
-        temporary = weights.with_suffix(".tmp")
-        torch.save({
-            "architecture": 4, "state": model.state_dict(), "epoch": best_epoch,
-            "projection_iterations": model.projection_iterations,
-        }, temporary)
-        temporary.replace(weights)
-        print(f"Saved weights: {weights}", flush=True)
-    else:
-        checkpoint = torch.load(weights, map_location=device, weights_only=True)
-        architecture = checkpoint.get("architecture")
-        if architecture in (3, 4):
-            model = PhaseNet(
-                projection_iterations=checkpoint.get("projection_iterations", 12),
-                aligned=architecture == 4,
-            )
-        elif architecture == 2:
-            model = DOENet(projection_iterations=checkpoint.get("projection_iterations", 6))
-        else:
-            parser.error(f"Incompatible weights: {weights}")
-        model.load_state_dict(checkpoint["state"])
-        best_epoch = checkpoint["epoch"]
-        print(f"Loaded weights: {weights}", flush=True)
+    model = ImportanceDOE(checkpoint["projections"], learn_phase=architecture == ARCHITECTURE)
+    model.load_state_dict(checkpoint["state"])
     model.eval()
 
-    with torch.inference_mode():
-        pixels = quantize_phase_u8(model(targets.unsqueeze(0))[0])
-
-        output.mkdir(parents=True, exist_ok=True)
-        mask_path = output / "doe.png"
-        Image.fromarray(pixels.numpy()).save(mask_path)
-        with Image.open(mask_path) as mask:
-            saved = torch.frombuffer(bytearray(mask.tobytes()), dtype=torch.uint8).reshape(pixels.shape)
-        phase = dequantize_phase_u8(saved)
-        planes = reconstruct(phase)
-        scores = compare_images(planes, targets).tolist()
-
-        report = {
-            "trained": True, "epoch": best_epoch, "sample_id": sample_id,
-            "split": split, "inputs": input_paths, "weights": str(weights.resolve()),
-            "planes": [],
-        }
-        for index, (plane, z, (ssim, pearson)) in enumerate(
-            zip(planes, DISTANCES, scores, strict=True), 1
-        ):
-            restored = (plane * 255).round().to(torch.uint8)
-            Image.fromarray(restored.numpy()).save(output / f"restored_{index}.png")
-            report["planes"].append({
-                "distance_mm": round(z * 1000, 1), "pearson": pearson, "ssim": ssim,
-            })
-
+    output = results / f"network-importance-{datetime.now():%Y%m%d-%H%M%S-%f}"
+    output.mkdir(parents=True)
+    with torch.no_grad():
+        mask = quantize_phase_u8(model(targets.unsqueeze(0))[0])
+        Image.fromarray(mask.numpy()).save(output / "doe.png")
+        planes = reconstruct(dequantize_phase_u8(mask))
+        values = score(planes, targets).tolist()
+        for i, image in enumerate(planes, 1):
+            Image.fromarray((image * 255).round().to(torch.uint8).numpy()).save(output / f"restored_{i}.png")
+    report = {
+        "sample_id": sample_id, "split": split, "weights": str(weights.resolve()),
+        "epoch": checkpoint["epoch"],
+        "inputs": [str((dataset.root_dir / path).resolve()) for path in dataset.samples[index].images],
+        "planes": [{"distance_mm": distance, "ssim": ssim, "pearson": pearson}
+                   for distance, (ssim, pearson) in zip(distances, values, strict=True)],
+    }
     (output / "metrics.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(f"Best validation epoch: {best_epoch}. Output: {output}", flush=True)
+    print(f"Sample {sample_id} | output {output}", flush=True)
     return output, model
 
 
