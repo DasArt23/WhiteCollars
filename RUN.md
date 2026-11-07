@@ -73,6 +73,34 @@ Validation и test содержат по 100 отдельных четвёрок
 
 ## 4. Запустить обучение на V100
 
+### Актуальный набор: 4608 train с дополнительным архивом
+
+После подготовки или распаковки `build/data_gray_4096` выполните один раз:
+
+```bash
+uv run --extra v100 --frozen python -m dataset.import_exchange \
+  --base build/data_gray_4096/manifest.json \
+  --archive ZAKHAR_FULL_TRAIN_train512.zip --out build/data_train4608
+```
+
+Импорт проверяет параметры оптики, порядок плоскостей, формат PNG, SHA256 и
+точные совпадения пикселей с train/validation/test/stress. Исходные файлы не меняются.
+Получится 4608 train, 100 validation, 100 test, 1 diagnostic и 100 отдельных stress.
+В архиве 256 целей типа A из симуляции и 256 процедурных B, согласно его описанию;
+достижимость A нашим оператором без исходных фаз не подтверждена.
+
+Актуальная команда обучения:
+
+```bash
+uv run --extra v100 --frozen project train \
+  --manifest build/data_train4608/manifest.json \
+  --checkpoint checkpoints/train4608_v3/best_model.pt \
+  --device cuda --precision fp32 --epochs 60 --batch-size 2 \
+  --lr 0.0003 --unroll-steps 6 --base-dim 48 --seed 3701 --polish-steps 0
+```
+
+Ниже сохранён пример для прежнего набора из 2000 четвёрок.
+
 ```bash
 uv run --extra v100 --frozen project train \
   --manifest build/data_gray/manifest.json \

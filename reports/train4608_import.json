@@ -1,0 +1,17 @@
+{
+  "counts": {
+    "diagnostic": 1,
+    "train": 4608,
+    "validation": 100,
+    "test": 100
+  },
+  "imported_quartets": 512,
+  "pixel_duplicates": 0,
+  "held_out_preserved": true,
+  "archive_sha256": "a802aa7bdbbf5315b97dd5ae1e3c1611e4acbb44712ecbb8cd4093d1f92fa750",
+  "source_manifest_sha256": "8bff1349f77e9ca38dfe9c79337a4305346d78fd165d39d5f4a7318130e16dc4",
+  "kinds": {
+    "A": 256,
+    "B": 256
+  }
+}
