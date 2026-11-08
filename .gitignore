@@ -1,0 +1,69 @@
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Linters and type checkers
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Vscode files
+.vscode
+
+#Dataset
+src/dataset/data_1000
+src/dataset/data/*
+src/dataset/images
+/src/dataset/data_*/
+
+preds
+results.csv
+
+#Model
+src/model/results
+src/model/weights
+
+/outputs/
+/checkpoints/

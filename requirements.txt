@@ -1,0 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+numpy==2.5.4
+pillow==13.0.0
+scikit-image==0.26.0
+torch==2.14.1+cpu

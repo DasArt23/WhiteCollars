@@ -1,0 +1,36 @@
+:root {
+  color-scheme: light;
+  font: 16px/1.5 system-ui, sans-serif;
+  color: #18333c;
+  background: #eef4f4;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+main { max-width: 1060px; margin: auto; padding: 34px 18px 60px; }
+h1, h2, h3, h4, p { margin: 0; }
+p { color: #4e6269; }
+.hero { background: #15333a; color: #f3fbfa; padding: clamp(24px, 5vw, 44px); border-radius: 18px; }
+.hero p { color: #bdd7d5; }
+.hero h1 { margin: 8px 0 12px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1.14; }
+form, section { margin-top: 28px; }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 16px 0; }
+.card { display: block; padding: 13px; min-width: 0; background: #fff; border: 1px solid #ccdcdc; border-radius: 12px; }
+.frame { display: grid; place-items: center; aspect-ratio: 1; border-radius: 8px; background: #e6eeee; margin: 8px 0; }
+img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; background: #111; border-radius: 8px; }
+article img { margin: 8px 0; }
+label { cursor: pointer; }
+label:focus-within { outline: 2px solid #14766b; outline-offset: 2px; }
+input { width: 100%; font: inherit; font-size: .8rem; }
+.filename { display: block; overflow-wrap: anywhere; font-size: .8rem; }
+button { background: #13645c; color: #fff; padding: 9px 14px; border: 1px solid transparent; border-radius: 8px; font: inherit; font-weight: 700; cursor: pointer; }
+button:disabled { opacity: .6; cursor: default; }
+button.secondary { color: #135148; background: #fff; border-color: #a2c4c1; }
+a { color: #135148; font-weight: 700; }
+#error { color: #9d2436; margin-top: 10px; }
+.mask { display: flex; align-items: center; gap: 18px; margin: 14px 0 22px; }
+.mask img { width: 128px; flex: 0 0 128px; }
+.metrics { white-space: pre-line; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 370px) { .grid { grid-template-columns: 1fr; } .mask { flex-direction: column; align-items: flex-start; } }
