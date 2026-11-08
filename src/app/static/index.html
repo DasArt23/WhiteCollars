@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WhiteCollars — синтез ДОЭ</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p>WHITECOLLARS · ФОТОНИКА</p>
+      <h1>Синтез фазового ДОЭ</h1>
+      <p>Четыре целевых изображения, одна фазовая маска и четыре реконструкции по Френелю.</p>
+    </header>
+
+    <form id="prediction">
+      <div class="heading">
+        <div>
+          <h2>Целевые изображения</h2>
+          <p>Одноканальный PNG · 128 × 128 · 8 бит</p>
+        </div>
+        <button class="secondary" type="button" id="example">Загрузить пример</button>
+      </div>
+      <div class="grid" id="inputs"></div>
+      <div class="heading">
+        <button type="submit" id="run" disabled>Рассчитать ДОЭ</button>
+        <p id="status" role="status">Загружено 0 из 4</p>
+      </div>
+      <p id="error" role="alert" hidden></p>
+    </form>
+
+    <section id="result" hidden aria-labelledby="result-title">
+      <h2 id="result-title" tabindex="-1">Результат</h2>
+      <p id="summary"></p>
+      <div class="card mask">
+        <img id="doe" alt="Фазовая маска">
+        <div>
+          <h3>Фазовый ДОЭ</h3>
+          <p>PNG L8 · 0 = −π, 255 = +π</p>
+          <a id="download" download="doe.png">Скачать ДОЭ</a>
+        </div>
+      </div>
+      <h3>Реконструкции и метрики</h3>
+      <div class="grid" id="planes"></div>
+    </section>
+  </main>
+
+  <template id="input-card">
+    <label class="card">
+      <strong></strong>
+      <span class="frame"><img hidden><span>Выбрать PNG</span></span>
+      <input type="file" accept=".png,image/png">
+      <span class="filename"></span>
+    </label>
+  </template>
+
+  <template id="output-card">
+    <article class="card">
+      <h4></h4>
+      <img>
+      <p class="metrics"></p>
+      <a>Скачать PNG</a>
+    </article>
+  </template>
+</body>
+</html>

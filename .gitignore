@@ -51,3 +51,19 @@ Thumbs.db
 
 # Vscode files
 .vscode
+
+#Dataset
+src/dataset/data_1000
+src/dataset/data/*
+src/dataset/images
+/src/dataset/data_*/
+
+preds
+results.csv
+
+#Model
+src/model/results
+src/model/weights
+
+/outputs/
+/checkpoints/
