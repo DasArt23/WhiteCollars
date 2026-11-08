@@ -52,3 +52,4 @@ Thumbs.db
 
 # Vscode files
 .vscode
+checkpoints/zakhar_5208_50epochs/best_model.pt
