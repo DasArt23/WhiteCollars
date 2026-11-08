@@ -1,0 +1,20 @@
+{
+  "loss": 4.200929818153381,
+  "pearson": 0.5563205921649933,
+  "ssim_global": 0.3280747729539871,
+  "ssim_skimage": 0.07955138750374317,
+  "shape_error": 0.8661623537540436,
+  "visual_error": 1.7159084844589234,
+  "selection_error": 4.200929818153381,
+  "worst_pearson": 0.43242554187774657,
+  "worst_ssim_skimage": 0.06420166686177253,
+  "score": -4.200929818153381,
+  "groups": {},
+  "foreground_error": 0.34353962242603303,
+  "background_error": 0.009923954792320729,
+  "background_energy": 0.6135506576299667,
+  "foreign_energy": 0.4698953056335449,
+  "power_error": 0.8494726753234864,
+  "edge_error": 0.4126490783691406,
+  "multiscale_error": 0.7599018561840057
+}

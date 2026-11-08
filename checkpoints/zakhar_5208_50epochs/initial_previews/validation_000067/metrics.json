@@ -1,0 +1,37 @@
+{
+  "planes": [
+    {
+      "plane": 1,
+      "distance_mm": 24.1,
+      "pearson": 0.42907130894767265,
+      "ssim_global": 0.23975376410444407,
+      "ssim_skimage": 0.06917993460871745
+    },
+    {
+      "plane": 2,
+      "distance_mm": 25.3,
+      "pearson": 0.5784137851198566,
+      "ssim_global": 0.30790596437774315,
+      "ssim_skimage": 0.08002776920973459
+    },
+    {
+      "plane": 3,
+      "distance_mm": 26.5,
+      "pearson": 0.4869917868777656,
+      "ssim_global": 0.3230581698364385,
+      "ssim_skimage": 0.0753557594537976
+    },
+    {
+      "plane": 4,
+      "distance_mm": 27.7,
+      "pearson": 0.5644425267327934,
+      "ssim_global": 0.3746127845825466,
+      "ssim_skimage": 0.0717771481819385
+    }
+  ],
+  "mean": {
+    "pearson": 0.514729851919522,
+    "ssim_global": 0.3113326707252931,
+    "ssim_skimage": 0.07408515286354704
+  }
+}

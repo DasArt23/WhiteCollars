@@ -1,0 +1,47 @@
+{
+  "device": "cuda",
+  "polish_steps": 25,
+  "inference_ms": 1454.76,
+  "network_ms": 378.27,
+  "refinement_ms": 1076.24,
+  "synthesis_method": "network+phase_refinement",
+  "norm": "max",
+  "compare": "amplitude",
+  "planes": [
+    {
+      "plane": 1,
+      "distance_mm": 24.1,
+      "pearson": 0.6454974195003733,
+      "ssim_global": 0.21282778986065393,
+      "ssim_skimage": 0.08273395671934375
+    },
+    {
+      "plane": 2,
+      "distance_mm": 25.3,
+      "pearson": 0.8123915073885206,
+      "ssim_global": 0.48962663732639594,
+      "ssim_skimage": 0.0816531155435832
+    },
+    {
+      "plane": 3,
+      "distance_mm": 26.5,
+      "pearson": 0.6553821958104041,
+      "ssim_global": 0.4614937157391912,
+      "ssim_skimage": 0.0691541910834662
+    },
+    {
+      "plane": 4,
+      "distance_mm": 27.7,
+      "pearson": 0.42549547723448444,
+      "ssim_global": 0.17280435552500653,
+      "ssim_skimage": 0.09206527858385709
+    }
+  ],
+  "mean": {
+    "pearson": 0.6346916499834456,
+    "ssim_global": 0.3341881246128119,
+    "ssim_skimage": 0.08140163548256256
+  },
+  "checkpoint": "checkpoints/zakhar_5208_50epochs/best_model.pt",
+  "checkpoint_loaded": true
+}
